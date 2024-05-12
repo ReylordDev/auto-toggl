@@ -1,5 +1,4 @@
 import json
-from pprint import pprint
 from .window import Window
 from .windowsUtils import mozlz4_to_text
 import os
@@ -19,6 +18,7 @@ class VSCode(Window):
             self.file_name = "No Tab"
         else:
             self.file_name = title_parts[0]
+        self.priority = 5
 
     def __str__(self):
         return f"VSCode(Active-Tab: {self.file_name}, Project: {self.project_name}, Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})"
@@ -33,9 +33,8 @@ class VSCode(Window):
         title = self.get_title()
         title_parts = title.split(" - ")
         if len(title_parts) < 2:
-            file_name = "No File"
-        else:
-            file_name = title_parts[0]
+            return None
+        file_name = title_parts[0]
         file_name = file_name.strip("● ")
         return file_name
 
@@ -43,9 +42,15 @@ class VSCode(Window):
         title = self.get_title()
         title_parts = title.split(" - ")
         if len(title_parts) < 3:
-            project_name = "No Project"
+            project_name = None
         else:
             project_name = title_parts[1]
+        return project_name
+
+    def get_description(self):
+        project_name = self.get_project_name()
+        if not project_name:
+            return self.get_file_name()
         return project_name
 
 
@@ -63,6 +68,7 @@ class ArcBrowser(Window):
 
     def __init__(self, handle: int):
         super().__init__(handle)
+        self.priority = 4
 
     def __str__(self):
         return f'ArcBrowser(Active-Space: "{self.get_space()}", Active-Tab: "{self.get_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -127,6 +133,7 @@ class ArcBrowser(Window):
 class Spotify(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
+        self.priority = 1
 
     def is_playing_audio(self):
         title = self.get_title()
@@ -167,6 +174,7 @@ class Spotify(Window):
 
 
 class Firefox(Window):
+    # TODO: Adjust priority based on tab name
     PROFILE_NAME = "1doawgbs.default"
     profile_path = os.path.join(
         os.environ["APPDATA"], "Mozilla", "Firefox", "Profiles", PROFILE_NAME
@@ -175,6 +183,7 @@ class Firefox(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
         self.get_recently_opened_tabs()
+        self.priority = 3
 
     def __str__(self):
         return f'Firefox(Active-Tab: "{self.get_current_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -247,6 +256,7 @@ class Firefox(Window):
 class Notion(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
+        self.priority = 4
 
     def __str__(self):
         return f'Notion(Active-Page: "{self.get_page_title()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -268,8 +278,10 @@ class Notion(Window):
 
 
 class Chrome(Window):
+    # TODO: Better tab title
     def __init__(self, handle: int):
         super().__init__(handle)
+        self.priority = 3
 
     def __str__(self):
         return f'Chrome(Active-Tab: "{self.get_current_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -292,6 +304,7 @@ class Chrome(Window):
 class NvimQT(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
+        self.priority = 2
 
     def __str__(self):
         return f"Journal(Foreground: {self.is_active()})"
@@ -309,6 +322,7 @@ class NvimQT(Window):
 class NotionCalendar(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
+        self.priority = 1
 
     def __str__(self):
         return f'NotionCalendar(Title: "{self.get_title()}")'
@@ -328,3 +342,9 @@ class NotionCalendar(Window):
         title = title_parts[0]
         title = title.replace(" – ", "-").replace(" ", " ")
         return title
+
+
+class HuntShowdown(Window):
+    def __init__(self, handle: int):
+        super().__init__(handle)
+        self.priority = 10

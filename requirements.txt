@@ -9,6 +9,7 @@ psutil==5.9.8
 pycaw==20240210
 pydantic==2.7.1
 pydantic_core==2.18.2
+python-dotenv==1.0.1
 pywin32==306
 requests==2.31.0
 requests-file==2.0.0

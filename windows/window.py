@@ -10,6 +10,7 @@ class Window:
         self.handle = handle
         _, self._pid = win32process.GetWindowThreadProcessId(handle)
         self.process = get_process_name(self._pid)
+        self.priority = 0
 
     # No idea why I'm setting some properties as private
 
@@ -20,7 +21,7 @@ class Window:
         return f"Window({self.repr_content()})"
 
     def repr_content(self):
-        return f"handle={self.handle}, process='{self.process}', title='{self.get_title()}', visible={self.is_visible()}, active={self.is_active()}, audio={self.is_playing_audio()}, placement={self.get_placement()}"
+        return f"handle={self.handle}, process='{self.process}', description='{self.get_description()}', title='{self.get_title()}', visible={self.is_visible()}, active={self.is_active()}, audio={self.is_playing_audio()}, placement={self.get_placement()}, priority={self.priority}"
 
     def llm_repr(self):
         return f'{self._active_window_prefix()}Window:{{Title:"{self.get_title()}", Process:"{self.process}", Audio:{self.is_playing_audio()}}}'
@@ -54,3 +55,6 @@ class Window:
         if self.is_active():
             return "(Active) "
         return ""
+
+    def get_description(self):
+        return self.get_title()
