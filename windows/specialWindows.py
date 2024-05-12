@@ -1,4 +1,5 @@
 import json
+from pprint import pprint
 from .window import Window
 from .windowsUtils import mozlz4_to_text
 import os
@@ -190,9 +191,21 @@ class Firefox(Window):
             return "No Tab"
         title_parts = title.split(" – ")
         tab_title = "".join(title_parts[0:-1])
+        if " - " in tab_title:
+            tab_title_parts = tab_title.split(" - ")
+            website_name = tab_title_parts[-1]
+            return website_name
+        if " | " in tab_title:
+            tab_title_parts = tab_title.split(" | ")
+            website_name = tab_title_parts[0]
+            return website_name
+        if " / " in tab_title:
+            tab_title_parts = tab_title.split(" / ")
+            website_name = tab_title_parts[-1]
+            return website_name
         return tab_title
 
-    def get_recently_opened_tabs(self):
+    def get_recently_opened_tabs(self) -> list[dict[str, str]]:
         # TODO: Blacklist some tabs
         # TODO: Add recency limit (time or quantity based)
         recovery_file = os.path.join(
@@ -204,6 +217,7 @@ class Firefox(Window):
         session_data = json.loads(session_data)
         tab_names = []
         tab_urls = []
+        tabs = []
         for window in session_data["windows"]:
             for tab in window["tabs"]:
                 for entry in tab["entries"]:
@@ -214,7 +228,20 @@ class Firefox(Window):
                         continue
                     tab_urls.append(tld)
                     tab_names.append(title)
-        return tab_names
+                    tabs.append({"title": title, "url": url})
+        return tabs
+
+    def testing(self):
+        print("Testing")
+        recovery_file = os.path.join(
+            self.profile_path, "sessionstore-backups", "recovery.jsonlz4"
+        )
+        if not os.path.exists(recovery_file):
+            return []
+        session_data = mozlz4_to_text(recovery_file)
+        session_data = json.loads(session_data)
+        with open("session.json", "w") as f:
+            json.dump(session_data, f)
 
 
 class Notion(Window):
