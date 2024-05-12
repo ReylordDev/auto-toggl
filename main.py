@@ -16,7 +16,7 @@ def main():
                 scaled_prio = window.get_priority() * 1
             else:
                 scaled_prio = window.get_priority() * 0.5
-            print(f"{i}: {window.get_priority()}, {scaled_prio}")
+            # print(f"{i}: {window.get_priority()}, {scaled_prio}, {window.__repr__()}")
             if scaled_prio > max_prio:
                 max_prio = scaled_prio
                 max_prio_window = window

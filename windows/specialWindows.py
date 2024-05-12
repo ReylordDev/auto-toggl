@@ -1,4 +1,5 @@
 import json
+from pprint import pprint
 from .window import Window
 from .windowsUtils import mozlz4_to_text
 import os
@@ -190,12 +191,18 @@ class Firefox(Window):
     profile_path = os.path.join(
         os.environ["APPDATA"], "Mozilla", "Firefox", "Profiles", PROFILE_NAME
     )
-    entertainment_blacklist = [
-        ("Youtube", "https://www.youtube.com/"),
-        ("Reddit", "https://www.reddit.com/"),
-        ("Twitter", "https://twitter.com/"),
-        ("Twitch", "https://www.twitch.tv/"),
-        ("Wookieepedia", "https://starwars.fandom.com/"),
+    entertainment_list = [
+        ("Youtube", "https://www.youtube.com"),
+        ("Reddit", "https://www.reddit.com"),
+        ("Twitter", "https://twitter.com"),
+        ("Twitch", "https://www.twitch.tv"),
+        ("Wookieepedia", "https://starwars.fandom.com"),
+        ("TimeGuessr", "https://timeguessr.com"),
+    ]
+
+    habits_list = [
+        ("Duolingo", "https://www.duolingo.com"),
+        ("Monkeytype", "https://monkeytype.com"),
     ]
 
     def __init__(self, handle: int):
@@ -258,37 +265,34 @@ class Firefox(Window):
                     tabs.append({"title": title, "url": url})
         return tabs
 
-    def testing(self):
-        print("Testing")
-        recovery_file = os.path.join(
-            self.profile_path, "sessionstore-backups", "recovery.jsonlz4"
-        )
-        if not os.path.exists(recovery_file):
-            return []
-        session_data = mozlz4_to_text(recovery_file)
-        session_data = json.loads(session_data)
-        with open("session.json", "w") as f:
-            json.dump(session_data, f)
-
     def get_type_and_cause(self):
         recent_tabs = self.get_recently_opened_tabs()
-        for blacklist in self.entertainment_blacklist:
+        for entertainment_site in self.entertainment_list:
             for tab in recent_tabs:
-                if blacklist[1] in tab["url"]:
-                    return "Entertainment", blacklist[0]
-            if blacklist[0] in self.get_current_tab():
-                return "Entertainment", blacklist[0]
+                if entertainment_site[1] in tab["url"]:
+                    return "Entertainment", entertainment_site[0]
+            if entertainment_site[0] in self.get_current_tab():
+                return "Entertainment", entertainment_site[0]
+
+        for habit_site in self.habits_list:
+            for tab in recent_tabs:
+                if habit_site[1] in tab["url"]:
+                    return "Habits", habit_site[0]
+            if habit_site[0] in self.get_current_tab():
+                return "Habits", habit_site[0]
         return "Default", None
 
     def get_priority(self):
         ff_type, cause = self.get_type_and_cause()
         if ff_type == "Entertainment":
             return 7
+        if ff_type == "Habits":
+            return 4
         return self._priority
 
     def get_toggl_description(self):
         ff_type, cause = self.get_type_and_cause()
-        if ff_type == "Entertainment":
+        if cause:
             return cause
         return None
 
@@ -296,6 +300,9 @@ class Firefox(Window):
         ff_type, cause = self.get_type_and_cause()
         if ff_type == "Entertainment":
             id = project_to_id["Entertainment"]
+            return id
+        if ff_type == "Habits":
+            id = project_to_id["Habits"]
             return id
         return None
 
