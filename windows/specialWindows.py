@@ -4,6 +4,10 @@ from .windowsUtils import mozlz4_to_text
 import os
 from tldextract import extract
 
+with open("projectIds.json", "r") as f:
+    project_ids: list = json.load(f)
+project_to_id = {project["alias"]: project["id"] for project in project_ids}
+
 
 class VSCode(Window):
     def __init__(self, handle: int):
@@ -18,7 +22,7 @@ class VSCode(Window):
             self.file_name = "No Tab"
         else:
             self.file_name = title_parts[0]
-        self.priority = 5
+        self._priority = 5
 
     def __str__(self):
         return f"VSCode(Active-Tab: {self.file_name}, Project: {self.project_name}, Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})"
@@ -47,11 +51,15 @@ class VSCode(Window):
             project_name = title_parts[1]
         return project_name
 
-    def get_description(self):
+    def get_toggl_description(self):
         project_name = self.get_project_name()
         if not project_name:
             return self.get_file_name()
         return project_name
+
+    def get_toggl_project_id(self):
+        id = project_to_id["Coding"]
+        return id
 
 
 class ArcBrowser(Window):
@@ -68,7 +76,7 @@ class ArcBrowser(Window):
 
     def __init__(self, handle: int):
         super().__init__(handle)
-        self.priority = 4
+        self._priority = 4
 
     def __str__(self):
         return f'ArcBrowser(Active-Space: "{self.get_space()}", Active-Tab: "{self.get_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -128,12 +136,15 @@ class ArcBrowser(Window):
                 return space_name
         return "No Space"
 
+    def get_toggl_description(self):
+        return self.get_space()
+
 
 # Process: Spotify.exe, Title: Spotify Premium, Foreground: False, Audio: False
 class Spotify(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
-        self.priority = 1
+        self._priority = 1
 
     def is_playing_audio(self):
         title = self.get_title()
@@ -179,11 +190,18 @@ class Firefox(Window):
     profile_path = os.path.join(
         os.environ["APPDATA"], "Mozilla", "Firefox", "Profiles", PROFILE_NAME
     )
+    entertainment_blacklist = [
+        ("Youtube", "https://www.youtube.com/"),
+        ("Reddit", "https://www.reddit.com/"),
+        ("Twitter", "https://twitter.com/"),
+        ("Twitch", "https://www.twitch.tv/"),
+        ("Wookieepedia", "https://starwars.fandom.com/"),
+    ]
 
     def __init__(self, handle: int):
         super().__init__(handle)
         self.get_recently_opened_tabs()
-        self.priority = 3
+        self._priority = 3
 
     def __str__(self):
         return f'Firefox(Active-Tab: "{self.get_current_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -252,11 +270,40 @@ class Firefox(Window):
         with open("session.json", "w") as f:
             json.dump(session_data, f)
 
+    def get_type_and_cause(self):
+        recent_tabs = self.get_recently_opened_tabs()
+        for blacklist in self.entertainment_blacklist:
+            for tab in recent_tabs:
+                if blacklist[1] in tab["url"]:
+                    return "Entertainment", blacklist[0]
+            if blacklist[0] in self.get_current_tab():
+                return "Entertainment", blacklist[0]
+        return "Default", None
+
+    def get_priority(self):
+        ff_type, cause = self.get_type_and_cause()
+        if ff_type == "Entertainment":
+            return 7
+        return self._priority
+
+    def get_toggl_description(self):
+        ff_type, cause = self.get_type_and_cause()
+        if ff_type == "Entertainment":
+            return cause
+        return None
+
+    def get_toggl_project_id(self):
+        ff_type, cause = self.get_type_and_cause()
+        if ff_type == "Entertainment":
+            id = project_to_id["Entertainment"]
+            return id
+        return None
+
 
 class Notion(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
-        self.priority = 4
+        self._priority = 4
 
     def __str__(self):
         return f'Notion(Active-Page: "{self.get_page_title()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -281,7 +328,7 @@ class Chrome(Window):
     # TODO: Better tab title
     def __init__(self, handle: int):
         super().__init__(handle)
-        self.priority = 3
+        self._priority = 3
 
     def __str__(self):
         return f'Chrome(Active-Tab: "{self.get_current_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -304,7 +351,7 @@ class Chrome(Window):
 class NvimQT(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
-        self.priority = 2
+        self._priority = 2
 
     def __str__(self):
         return f"Journal(Foreground: {self.is_active()})"
@@ -322,7 +369,7 @@ class NvimQT(Window):
 class NotionCalendar(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
-        self.priority = 1
+        self._priority = 1
 
     def __str__(self):
         return f'NotionCalendar(Title: "{self.get_title()}")'
@@ -347,4 +394,11 @@ class NotionCalendar(Window):
 class HuntShowdown(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
-        self.priority = 10
+        self._priority = 10
+
+    def get_toggl_description(self):
+        return "Hunt: Showdown"
+
+    def get_toggl_project_id(self):
+        id = project_to_id["Gaming"]
+        return id
