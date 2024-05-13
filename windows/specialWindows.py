@@ -5,9 +5,9 @@ from .windowsUtils import mozlz4_to_text
 import os
 from tldextract import extract
 
-with open("projectIds.json", "r") as f:
-    project_ids: list = json.load(f)
-project_to_id = {project["alias"]: project["id"] for project in project_ids}
+with open("projects.json", "r") as f:
+    project_objs: list = json.load(f)
+project_to_id = {project["alias"]: project["id"] for project in project_objs}
 
 
 class VSCode(Window):
@@ -247,7 +247,11 @@ class Firefox(Window):
         )
         if not os.path.exists(recovery_file):
             return []
-        session_data = mozlz4_to_text(recovery_file)
+        try:
+            session_data = mozlz4_to_text(recovery_file)
+        except PermissionError as e:
+            print(f"Permission error: {e}")
+            return []
         session_data = json.loads(session_data)
         tab_names = []
         tab_urls = []
@@ -371,6 +375,14 @@ class NvimQT(Window):
 
     def get_title(self):
         return "Journal"
+
+    def get_toggl_description(self):
+        return "Journal"
+
+    def get_toggl_project_id(self):
+        id = project_to_id["Habits"]
+        print(f"Journal project id: {id}")
+        return id
 
 
 class NotionCalendar(Window):

@@ -1,0 +1,27 @@
+[
+  {
+    "alias": "Coding",
+    "id": 202546216,
+    "priority": 7
+  },
+  {
+    "alias": "Entertainment",
+    "id": 197977483,
+    "priority": 10
+  },
+  {
+    "alias": "Focused Work",
+    "id": 198251740,
+    "priority": 7
+  },
+  {
+    "alias": "Gaming",
+    "id": 198130090,
+    "priority": 10
+  },
+  {
+    "alias": "Habits",
+    "id": 197970542,
+    "priority": 7
+  }
+]

@@ -1,6 +1,10 @@
 from datetime import datetime, timedelta, timezone
+import json
 from typing import Optional
 from pydantic import BaseModel, Field
+
+with open("projects.json", "r") as f:
+    project_objs: list = json.load(f)
 
 
 class TimeEntry(BaseModel):
@@ -9,10 +13,10 @@ class TimeEntry(BaseModel):
     duration: int
     id: int
     project_id: Optional[int]
-    project: str
     start: str
     stop: Optional[str]
     workspace_id: int
+    tags: list[str]
 
     def __str__(self):
         if self.stop:
@@ -28,9 +32,9 @@ class TimeEntry(BaseModel):
             stop = datetime.fromisoformat(self.stop)
             stop = stop.astimezone(tz=timezone(timedelta(hours=2)))
             stop = stop.strftime("%Y-%m-%d %H:%M:%S")
-            return f'(TogglDescription:"{self.description}", TogglProject:{self.project}, from {start} to {stop})'
+            return f'(TogglDescription:"{self.description}", from {start} to {stop})'
         else:
-            return f'(TogglDescripton:"{self.description}", TogglProject:{self.project}, started at {start})'
+            return f'(TogglDescripton:"{self.description}", started at {start})'
 
 
 class StartTimeEntryArgs(BaseModel):
@@ -63,3 +67,9 @@ class Project(BaseModel):
 
     def llm_repr(self):
         return f'"{self.name}", ID:{self.id})'
+
+    def get_priority(self):
+        for project_obj in project_objs:
+            if project_obj["id"] == self.id:
+                return project_obj["priority"]
+        return 0

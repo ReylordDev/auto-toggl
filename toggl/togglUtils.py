@@ -1,4 +1,4 @@
 def handleRequestErrors(response):
     print(response.status_code)
-    print(response.json())
+    print(response.text)
     raise Exception("TogglRequest failed")

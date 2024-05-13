@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 from typing import Optional
 import requests
 from requests import status_codes
@@ -31,56 +32,49 @@ def get_current_time_entry() -> Optional[TimeEntry]:
         if not body:
             # No time entry in progress
             return None
-        projects = get_all_projects()
-        if projects:
-            body["project"] = next(
-                (p.name for p in projects if p.id == body["pid"]), None
-            )
-
-            time_entry = TimeEntry(**body)
-            return time_entry
-    handleRequestErrors(response)
+        time_entry = TimeEntry(**body)
+        return time_entry
+    else:
+        handleRequestErrors(response)
 
 
 def start_time_entry(
-    toggle_description: str,
-    toggl_project_name: Optional[str] = None,
+    toggl_description: str,
+    toggl_project_id: Optional[int] = None,
     # start: datetime = now,
 ):
     """Start a new time-entry."""
+    print(
+        f"Starting time entry for {toggl_description} with project id {toggl_project_id}"
+    )
     payload = {
         "billable": False,
-        "created_with": "OS-Agents",
+        "created_with": "Auto-Toggl",
         "duration": -1,
         "shared_with_user_ids": [],
         "tags": [],
         "workspace_id": int(default_workspace_id),
     }
-    projects = get_tracker_projects()
-    # return f"Time Entry({title}, Project:{project_name}, started at {start})"
-    project_id = None
-    for proj in projects:
-        if proj.name == toggl_project_name:
-            project_id = proj.id
-            break
-    payload["description"] = toggle_description
+    payload["description"] = toggl_description
     payload["start"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    if project_id:
-        payload["pid"] = project_id
+    payload["tags"] = ["Auto-Toggl"]
+    if toggl_project_id:
+        payload["pid"] = toggl_project_id
+    else:
+        if not toggl_description:
+            return
     response = requests.post(
         f"{workspace_url}/time_entries", headers=headers, json=payload
     )
     if response.ok:
         new_time_entry = response.json()
-        new_time_entry["project"] = next(
-            (p.name for p in projects if p.id == new_time_entry["pid"]), None
-        )
-        return TimeEntry(**new_time_entry).llm_repr()
+        return TimeEntry(**new_time_entry)
     else:
         handleRequestErrors(response)
 
 
 def stop_time_entry(time_entry_id: int):
+    print(f"Stopping time entry {time_entry_id}")
     response = requests.patch(
         f"{workspace_url}/time_entries/{time_entry_id}/stop", headers=headers
     )
@@ -146,3 +140,13 @@ def get_tracker_projects() -> list[Project]:
     else:
         handleRequestErrors(response)
     return projects  # previous method should raise anyway
+
+
+def get_project(project_id: int) -> Project:
+    response = requests.get(f"{workspace_url}/projects/{project_id}", headers=headers)
+    if response.ok:
+        project_obj = response.json()
+        project = Project(**project_obj)
+        return project
+    else:
+        handleRequestErrors(response)
