@@ -69,7 +69,7 @@ def main():
                 toggl_description=new_description, toggl_project_id=new_project_id
             )
         print("-" * 80)
-        time.sleep(5)
+        time.sleep(30)
 
 
 if __name__ == "__main__":

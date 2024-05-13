@@ -38,15 +38,27 @@ def get_current_time_entry() -> Optional[TimeEntry]:
         handleRequestErrors(response)
 
 
+def get_time_entries() -> list[TimeEntry]:
+    response = requests.get(
+        f"{base_url}/me/time_entries",
+        headers=headers,
+    )
+    if response.ok:
+        time_entries = []
+        for time_entry_obj in response.json():
+            time_entry = TimeEntry(**time_entry_obj)
+            time_entries.append(time_entry)
+        return time_entries
+    else:
+        handleRequestErrors(response)
+
+
 def start_time_entry(
     toggl_description: str,
     toggl_project_id: Optional[int] = None,
     # start: datetime = now,
 ):
     """Start a new time-entry."""
-    print(
-        f"Starting time entry for {toggl_description} with project id {toggl_project_id}"
-    )
     payload = {
         "billable": False,
         "created_with": "Auto-Toggl",
@@ -63,6 +75,9 @@ def start_time_entry(
     else:
         if not toggl_description:
             return
+    print(
+        f"Starting time entry for {toggl_description} with project id {toggl_project_id}"
+    )
     response = requests.post(
         f"{workspace_url}/time_entries", headers=headers, json=payload
     )
@@ -148,5 +163,15 @@ def get_project(project_id: int) -> Project:
         project_obj = response.json()
         project = Project(**project_obj)
         return project
+    else:
+        handleRequestErrors(response)
+
+
+def delete_time_entry(time_entry_id: int):
+    response = requests.delete(
+        f"{workspace_url}/time_entries/{time_entry_id}", headers=headers
+    )
+    if response.ok:
+        return status_codes.codes.ok
     else:
         handleRequestErrors(response)
