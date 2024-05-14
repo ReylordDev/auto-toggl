@@ -9,6 +9,25 @@ with open("projects.json", "r") as f:
     project_objs: list = json.load(f)
 project_to_id = {project["alias"]: project["id"] for project in project_objs}
 
+entertainment_list = [
+    ("YouTube", "https://www.youtube.com"),
+    ("Reddit", "https://www.reddit.com"),
+    ("Twitter", "https://twitter.com"),
+    ("Twitch", "https://www.twitch.tv"),
+    ("Wookieepedia", "https://starwars.fandom.com"),
+    ("TimeGuessr", "https://timeguessr.com"),
+]
+
+entertainment_tabs = [
+    ("Everything GTA RP related!", "Reddit"),
+    ("X", "Twitter"),
+]
+
+habits_list = [
+    ("Duolingo", "https://www.duolingo.com"),
+    ("Monkeytype", "https://monkeytype.com"),
+]
+
 
 class VSCode(Window):
     def __init__(self, handle: int):
@@ -191,19 +210,6 @@ class Firefox(Window):
     profile_path = os.path.join(
         os.environ["APPDATA"], "Mozilla", "Firefox", "Profiles", PROFILE_NAME
     )
-    entertainment_list = [
-        ("Youtube", "https://www.youtube.com"),
-        ("Reddit", "https://www.reddit.com"),
-        ("Twitter", "https://twitter.com"),
-        ("Twitch", "https://www.twitch.tv"),
-        ("Wookieepedia", "https://starwars.fandom.com"),
-        ("TimeGuessr", "https://timeguessr.com"),
-    ]
-
-    habits_list = [
-        ("Duolingo", "https://www.duolingo.com"),
-        ("Monkeytype", "https://monkeytype.com"),
-    ]
 
     def __init__(self, handle: int):
         super().__init__(handle)
@@ -271,14 +277,14 @@ class Firefox(Window):
 
     def get_type_and_cause(self):
         recent_tabs = self.get_recently_opened_tabs()
-        for entertainment_site in self.entertainment_list:
+        for entertainment_site in entertainment_list:
             for tab in recent_tabs:
                 if entertainment_site[1] in tab["url"]:
                     return "Entertainment", entertainment_site[0]
             if entertainment_site[0] in self.get_current_tab():
                 return "Entertainment", entertainment_site[0]
 
-        for habit_site in self.habits_list:
+        for habit_site in habits_list:
             for tab in recent_tabs:
                 if habit_site[1] in tab["url"]:
                     return "Habits", habit_site[0]
@@ -336,7 +342,6 @@ class Notion(Window):
 
 
 class Chrome(Window):
-    # TODO: Better tab title
     def __init__(self, handle: int):
         super().__init__(handle)
         self._priority = 3
@@ -356,7 +361,53 @@ class Chrome(Window):
             return "No Tab"
         title_parts = title.split(" - ")
         tab_title = " - ".join(title_parts[0:-1])
+        if " - " in tab_title:
+            tab_title_parts = tab_title.split(" - ")
+            website_name = tab_title_parts[-1]
+            return website_name
+        if " | " in tab_title:
+            tab_title_parts = tab_title.split(" | ")
+            website_name = tab_title_parts[0]
+            return website_name
+        if " / " in tab_title:
+            tab_title_parts = tab_title.split(" / ")
+            website_name = tab_title_parts[-1]
+            return website_name
+        if " : " in tab_title:
+            tab_title_parts = tab_title.split(" : ")
+            website_name = tab_title_parts[-1]
+            return website_name
         return tab_title
+
+    def get_type_and_cause(self):
+        for entertainment_site in entertainment_list:
+            if entertainment_site[0] in self.get_current_tab():
+                return "Entertainment", entertainment_site[0]
+        for tab in entertainment_tabs:
+            if tab[0] == self.get_current_tab():
+                return "Entertainment", tab[1]
+        if "r/" in self.get_current_tab():
+            return "Entertainment", "Reddit"
+        return "Default", None
+
+    def get_priority(self):
+        ff_type, cause = self.get_type_and_cause()
+        if ff_type == "Entertainment":
+            return 7
+        return self._priority
+
+    def get_toggl_description(self):
+        ff_type, cause = self.get_type_and_cause()
+        if cause:
+            return cause
+        return None
+
+    def get_toggl_project_id(self):
+        ff_type, cause = self.get_type_and_cause()
+        if ff_type == "Entertainment":
+            id = project_to_id["Entertainment"]
+            return id
+        return None
 
 
 class NvimQT(Window):
