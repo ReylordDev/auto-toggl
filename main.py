@@ -98,7 +98,7 @@ def main():
             logger.info("-" * 80)
             continue
         logger.info("-" * 80)
-        time.sleep(120)
+        time.sleep(30)
 
 
 if __name__ == "__main__":

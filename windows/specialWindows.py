@@ -4,10 +4,13 @@ from .window import Window
 from .windowsUtils import mozlz4_to_text
 import os
 from tldextract import extract
+import logging
 
 with open("projects.json", "r") as f:
     project_objs: list = json.load(f)
 project_to_id = {project["alias"]: project["id"] for project in project_objs}
+
+logger = logging.getLogger()
 
 entertainment_list = [
     ("YouTube", "https://www.youtube.com"),
@@ -205,7 +208,6 @@ class Spotify(Window):
 
 
 class Firefox(Window):
-    # TODO: Adjust priority based on tab name
     PROFILE_NAME = "1doawgbs.default"
     profile_path = os.path.join(
         os.environ["APPDATA"], "Mozilla", "Firefox", "Profiles", PROFILE_NAME
@@ -252,11 +254,12 @@ class Firefox(Window):
             self.profile_path, "sessionstore-backups", "recovery.jsonlz4"
         )
         if not os.path.exists(recovery_file):
+            logger.info(f"Firefox recovery file not found: {recovery_file}")
             return []
         try:
             session_data = mozlz4_to_text(recovery_file)
         except PermissionError as e:
-            print(f"Permission error: {e}")
+            logger.info(f"Firefox Permission Error: {e}")
             return []
         session_data = json.loads(session_data)
         tab_names = []
@@ -276,6 +279,7 @@ class Firefox(Window):
         return tabs
 
     def get_type_and_cause(self):
+        # TODO: Prioritize based on recency
         recent_tabs = self.get_recently_opened_tabs()
         for entertainment_site in entertainment_list:
             for tab in recent_tabs:
