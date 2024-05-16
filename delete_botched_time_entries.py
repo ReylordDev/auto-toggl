@@ -4,4 +4,5 @@ time_entries = get_time_entries()
 
 for time_entry in time_entries:
     if 0 <= time_entry.duration < 60:
+        print(f"Deleting time entry: {time_entry}")
         delete_time_entry(time_entry.id)

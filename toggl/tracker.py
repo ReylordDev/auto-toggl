@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timezone
 from .togglUtils import handleRequestErrors
 
+import logging
 from .models import TimeEntry, Project
 
 load_dotenv()
@@ -20,9 +21,11 @@ assert default_workspace_id, "TOGGL_DEFAULT_WORKSPACE_ID environment variable no
 base_url = "https://api.track.toggl.com/api/v9"
 workspace_url = f"{base_url}/workspaces/{default_workspace_id}"
 headers = {
-    "content-type": "application/json",
+    "Content-type": "application/json",
     "Authorization": f"Basic {b64encode(f'{toggl_api_key}:api_token'.encode()).decode('ascii')}",
 }
+
+logger = logging.getLogger()
 
 
 def get_current_time_entry() -> Optional[TimeEntry]:
@@ -75,7 +78,7 @@ def start_time_entry(
     else:
         if not toggl_description:
             return
-    print(
+    logger.info(
         f"Starting time entry for {toggl_description} with project id {toggl_project_id}"
     )
     response = requests.post(
@@ -89,7 +92,7 @@ def start_time_entry(
 
 
 def stop_time_entry(time_entry_id: int):
-    print(f"Stopping time entry {time_entry_id}")
+    logger.info(f"Stopping time entry {time_entry_id}")
     response = requests.patch(
         f"{workspace_url}/time_entries/{time_entry_id}/stop", headers=headers
     )
@@ -173,5 +176,32 @@ def delete_time_entry(time_entry_id: int):
     )
     if response.ok:
         return status_codes.codes.ok
+    else:
+        handleRequestErrors(response)
+
+
+def update_time_entry(time_entry_id: int, stop: str):
+    response = requests.put(
+        f"{workspace_url}/time_entries/{time_entry_id}",
+        headers=headers,
+        json={"stop": stop},
+    )
+    print(stop)
+    print(f"Method: {response.request.method}")
+    print(f"URL: {response.request.url}")
+    print(f"Headers: {response.request.headers}")
+    print(f"Body: {response.request.body}")
+    print("-" * 80)
+    if response.ok:
+        return status_codes.codes.ok
+    else:
+        handleRequestErrors(response)
+    logger.error(f"Request Unexpectedly failed: {response.text}")
+
+
+def get_me():
+    response = requests.get(f"{base_url}/me", headers=headers)
+    if response.ok:
+        return response.json()
     else:
         handleRequestErrors(response)
