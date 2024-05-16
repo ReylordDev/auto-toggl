@@ -1,3 +1,4 @@
+from requests import Timeout
 from windows import get_windows
 from toggl import (
     get_projects,
@@ -8,14 +9,24 @@ from toggl import (
 )
 from pprint import pprint
 import time
+import logging
 
 
 def main():
+    logging.basicConfig(
+        filename="watcher.log",
+        level=logging.INFO,
+        encoding="utf-8",
+    )
+    logger = logging.getLogger()
     projects = get_projects()
     while True:
+        logger.info("New Iteration")
         current_time_entry = get_current_time_entry()
+        logger.info(f"Current time entry: {current_time_entry.__repr__()}")
         windows = get_windows()
         max_prio = 0
+        logger.info("Scaled priorities:")
         for i, window in enumerate(windows):
             if i <= 3:
                 scaled_prio = window.get_priority() * 1.5
@@ -23,53 +34,71 @@ def main():
                 scaled_prio = window.get_priority() * 1
             else:
                 scaled_prio = window.get_priority() * 0.5
-            # print(f"{i}: {window.get_priority()}, {scaled_prio}, {window.__repr__()}")
+
+            logger.info(
+                f"{i}: Priority: {window.get_priority()} Scaled: {scaled_prio},\n{window.__repr__()}\n"
+            )
             if scaled_prio > max_prio:
                 max_prio = scaled_prio
                 max_prio_window = window
+        logger.info(f"Max priority window: {max_prio_window.__repr__()}")
+        logger.info(f"Max priority: {max_prio}")
         new_project_id = max_prio_window.get_toggl_project_id()
         new_description = max_prio_window.get_toggl_description()
-        print(f"Max priority window: {max_prio_window}, Priority: {max_prio}")
         project = next(
             (project for project in projects if project.id == new_project_id),
             None,
         )
-        print(f"Project: {project.name if project else None}")
-        print(f"Description: {new_description}")
-        if current_time_entry:
-            if current_time_entry.project_id == new_project_id:
-                if current_time_entry.description == new_description:
-                    pass
-                else:
-                    stop_time_entry(current_time_entry.id)
-                    start_time_entry(
-                        toggl_description=new_description,
-                        toggl_project_id=new_project_id,
-                    )
-            else:
-                if "Auto-Toggl" not in current_time_entry.tags:
-                    current_project = get_project(current_time_entry.project_id)
-                    print(f"Current project: {current_project.name}")
-                    print(f"Current project priority: {current_project.get_priority()}")
-                    print(f"Max priority: {max_prio}")
-                    if current_project.get_priority() < max_prio:
+        logger.info(f"New Project: {project.name if project else None}")
+        logger.info(f"New Description: {new_description}")
+        try:
+            if current_time_entry:
+                if current_time_entry.project_id == new_project_id:
+                    if current_time_entry.description == new_description:
+                        logger.info("Continuing current time entry.")
+                        pass
+                    else:
+                        logger.info("Same project, different description. Updating.")
                         stop_time_entry(current_time_entry.id)
                         start_time_entry(
                             toggl_description=new_description,
                             toggl_project_id=new_project_id,
                         )
                 else:
-                    stop_time_entry(current_time_entry.id)
-                    start_time_entry(
-                        toggl_description=new_description,
-                        toggl_project_id=new_project_id,
-                    )
-        else:
-            start_time_entry(
-                toggl_description=new_description, toggl_project_id=new_project_id
-            )
-        print("-" * 80)
-        time.sleep(30)
+                    if "Auto-Toggl" not in current_time_entry.tags:
+                        logger.info("Current time entry is manual.")
+                        current_project = get_project(current_time_entry.project_id)
+                        logger.info(f"Current project: {current_project.name}")
+                        logger.info(
+                            f"Current project priority: {current_project.get_priority()}"
+                        )
+                        if current_project.get_priority() < max_prio:
+                            logger.info(
+                                "Current project priority is lower than new window priority."
+                            )
+                            stop_time_entry(current_time_entry.id)
+                            start_time_entry(
+                                toggl_description=new_description,
+                                toggl_project_id=new_project_id,
+                            )
+                    else:
+                        logger.info("Current time entry is automatic.")
+                        stop_time_entry(current_time_entry.id)
+                        start_time_entry(
+                            toggl_description=new_description,
+                            toggl_project_id=new_project_id,
+                        )
+            else:
+                logger.info("No current time entry, starting new time entry")
+                start_time_entry(
+                    toggl_description=new_description, toggl_project_id=new_project_id
+                )
+        except Timeout as e:
+            logger.error(f"Caught Timeout Error: {e}")
+            logger.info("-" * 80)
+            continue
+        logger.info("-" * 80)
+        time.sleep(120)
 
 
 if __name__ == "__main__":
