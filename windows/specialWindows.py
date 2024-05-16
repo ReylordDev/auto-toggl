@@ -261,6 +261,9 @@ class Firefox(Window):
         except PermissionError as e:
             logger.info(f"Firefox Permission Error: {e}")
             return []
+        except Exception as e:
+            logger.info(f"Firefox Error: {e}")
+            return []
         session_data = json.loads(session_data)
         tab_names = []
         tab_urls = []
