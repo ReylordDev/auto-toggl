@@ -51,52 +51,47 @@ def main():
         )
         logger.info(f"New Project: {project.name if project else None}")
         logger.info(f"New Description: {new_description}")
-        try:
-            if current_time_entry:
-                if current_time_entry.project_id == new_project_id:
-                    if current_time_entry.description == new_description:
-                        logger.info("Continuing current time entry.")
-                        pass
-                    else:
-                        logger.info("Same project, different description. Updating.")
+        if current_time_entry:
+            if current_time_entry.project_id == new_project_id:
+                if current_time_entry.description == new_description:
+                    logger.info("Continuing current time entry.")
+                    pass
+                else:
+                    logger.info("Same project, different description. Updating.")
+                    stop_time_entry(current_time_entry.id)
+                    start_time_entry(
+                        toggl_description=new_description,
+                        toggl_project_id=new_project_id,
+                    )
+            else:
+                if "Auto-Toggl" not in current_time_entry.tags:
+                    logger.info("Current time entry is manual.")
+                    current_project = get_project(current_time_entry.project_id)
+                    logger.info(f"Current project: {current_project.name}")
+                    logger.info(
+                        f"Current project priority: {current_project.get_priority()}"
+                    )
+                    if current_project.get_priority() < max_prio:
+                        logger.info(
+                            "Current project priority is lower than new window priority."
+                        )
                         stop_time_entry(current_time_entry.id)
                         start_time_entry(
                             toggl_description=new_description,
                             toggl_project_id=new_project_id,
                         )
                 else:
-                    if "Auto-Toggl" not in current_time_entry.tags:
-                        logger.info("Current time entry is manual.")
-                        current_project = get_project(current_time_entry.project_id)
-                        logger.info(f"Current project: {current_project.name}")
-                        logger.info(
-                            f"Current project priority: {current_project.get_priority()}"
-                        )
-                        if current_project.get_priority() < max_prio:
-                            logger.info(
-                                "Current project priority is lower than new window priority."
-                            )
-                            stop_time_entry(current_time_entry.id)
-                            start_time_entry(
-                                toggl_description=new_description,
-                                toggl_project_id=new_project_id,
-                            )
-                    else:
-                        logger.info("Current time entry is automatic.")
-                        stop_time_entry(current_time_entry.id)
-                        start_time_entry(
-                            toggl_description=new_description,
-                            toggl_project_id=new_project_id,
-                        )
-            else:
-                logger.info("No current time entry, starting new time entry")
-                start_time_entry(
-                    toggl_description=new_description, toggl_project_id=new_project_id
-                )
-        except Timeout as e:
-            logger.error(f"Caught Timeout Error: {e}")
-            logger.info("-" * 80)
-            continue
+                    logger.info("Current time entry is automatic.")
+                    stop_time_entry(current_time_entry.id)
+                    start_time_entry(
+                        toggl_description=new_description,
+                        toggl_project_id=new_project_id,
+                    )
+        else:
+            logger.info("No current time entry, starting new time entry")
+            start_time_entry(
+                toggl_description=new_description, toggl_project_id=new_project_id
+            )
         logger.info("-" * 80)
         time.sleep(30)
 
