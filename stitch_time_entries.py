@@ -19,10 +19,6 @@ for i in range(1, len(time_entries)):
         and time_entry.project_id == next_time_entry.project_id
         and time_entry.description == next_time_entry.description
     ):
-        print(
-            f"Time Entry Stop: {time_entry.stop}, Next Time Entry Start: {next_time_entry.start}"
-        )
-        print(f"Next Time Entry Stop: {next_time_entry.stop}")
-        print()
+        print(f"Stitching {time_entry.id} and {next_time_entry.id}")
         update_time_entry(time_entry.id, next_time_entry.stop)
         delete_time_entry(next_time_entry.id)

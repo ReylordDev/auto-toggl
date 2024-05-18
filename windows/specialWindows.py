@@ -15,7 +15,7 @@ logger = logging.getLogger()
 entertainment_list = [
     ("YouTube", "https://www.youtube.com"),
     ("Reddit", "https://www.reddit.com"),
-    ("Twitter", "https://twitter.com"),
+    ("Twitter", "https://x.com"),
     ("Twitch", "https://www.twitch.tv"),
     ("Wookieepedia", "https://starwars.fandom.com"),
     ("TimeGuessr", "https://timeguessr.com"),
@@ -28,7 +28,7 @@ entertainment_tabs = [
 
 habits_list = [
     ("Duolingo", "https://www.duolingo.com"),
-    ("Monkeytype", "https://monkeytype.com"),
+    # ("Monkeytype", "https://monkeytype.com"),
 ]
 
 
@@ -439,7 +439,6 @@ class NvimQT(Window):
 
     def get_toggl_project_id(self):
         id = project_to_id["Habits"]
-        print(f"Journal project id: {id}")
         return id
 
 

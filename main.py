@@ -1,4 +1,3 @@
-from requests import Timeout
 from windows import get_windows
 from toggl import (
     get_projects,
@@ -13,8 +12,9 @@ import logging
 
 
 def main():
+    date = time.strftime("%Y-%m-%d")
     logging.basicConfig(
-        filename="watcher.log",
+        filename=f"logs/{date}.log",
         level=logging.INFO,
         encoding="utf-8",
     )
@@ -67,19 +67,28 @@ def main():
                 if "Auto-Toggl" not in current_time_entry.tags:
                     logger.info("Current time entry is manual.")
                     current_project = get_project(current_time_entry.project_id)
-                    logger.info(f"Current project: {current_project.name}")
-                    logger.info(
-                        f"Current project priority: {current_project.get_priority()}"
-                    )
-                    if current_project.get_priority() < max_prio:
-                        logger.info(
-                            "Current project priority is lower than new window priority."
-                        )
+                    if current_project is None:
+                        logger.info("Current project not found. Overriding.")
                         stop_time_entry(current_time_entry.id)
                         start_time_entry(
                             toggl_description=new_description,
                             toggl_project_id=new_project_id,
                         )
+                        continue
+                    else:
+                        logger.info(f"Current project: {current_project.name}")
+                        logger.info(
+                            f"Current project priority: {current_project.get_priority()}"
+                        )
+                        if current_project.get_priority() < max_prio:
+                            logger.info(
+                                "Current project priority is lower than new window priority."
+                            )
+                            stop_time_entry(current_time_entry.id)
+                            start_time_entry(
+                                toggl_description=new_description,
+                                toggl_project_id=new_project_id,
+                            )
                 else:
                     logger.info("Current time entry is automatic.")
                     stop_time_entry(current_time_entry.id)

@@ -186,12 +186,6 @@ def update_time_entry(time_entry_id: int, stop: str):
         headers=headers,
         json={"stop": stop},
     )
-    print(stop)
-    print(f"Method: {response.request.method}")
-    print(f"URL: {response.request.url}")
-    print(f"Headers: {response.request.headers}")
-    print(f"Body: {response.request.body}")
-    print("-" * 80)
     if response.ok:
         return status_codes.codes.ok
     else:
