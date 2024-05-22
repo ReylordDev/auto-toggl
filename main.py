@@ -66,8 +66,7 @@ def main():
             else:
                 if "Auto-Toggl" not in current_time_entry.tags:
                     logger.info("Current time entry is manual.")
-                    current_project = get_project(current_time_entry.project_id)
-                    if current_project is None:
+                    if not current_time_entry.project_id:
                         logger.info("Current project not found. Overriding.")
                         stop_time_entry(current_time_entry.id)
                         start_time_entry(
@@ -76,6 +75,7 @@ def main():
                         )
                         continue
                     else:
+                        current_project = get_project(current_time_entry.project_id)
                         logger.info(f"Current project: {current_project.name}")
                         logger.info(
                             f"Current project priority: {current_project.get_priority()}"

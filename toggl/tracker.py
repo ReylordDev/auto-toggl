@@ -190,7 +190,6 @@ def update_time_entry(time_entry_id: int, stop: str):
         return status_codes.codes.ok
     else:
         handleRequestErrors(response)
-    logger.error(f"Request Unexpectedly failed: {response.text}")
 
 
 def get_me():
