@@ -19,6 +19,7 @@ entertainment_list = [
     ("Twitch", "https://www.twitch.tv"),
     ("Wookieepedia", "https://starwars.fandom.com"),
     ("TimeGuessr", "https://timeguessr.com"),
+    ("123Movies", "https://ww4.123moviesfree.net"),
 ]
 
 entertainment_tabs = [

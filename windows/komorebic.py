@@ -3,6 +3,7 @@ import json
 from .windowCreator import create_window, Window
 import win32gui
 import win32con
+from pywintypes import error
 
 
 def get_komorebic_state():
@@ -96,5 +97,10 @@ def get_windows_by_z_index():
         window = create_window(iterator_handle)
         windows.append(window)
 
-        iterator_handle = win32gui.GetWindow(iterator_handle, win32con.GW_HWNDNEXT)
+        try:
+            iterator_handle = win32gui.GetWindow(iterator_handle, win32con.GW_HWNDNEXT)
+        except error:
+            print("Error getting next window")
+            print(error)
+            break
     return windows
