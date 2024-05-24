@@ -20,6 +20,7 @@ entertainment_list = [
     ("Wookieepedia", "https://starwars.fandom.com"),
     ("TimeGuessr", "https://timeguessr.com"),
     ("123Movies", "https://ww4.123moviesfree.net"),
+    ("Connect-The-Stars", "https://connectthestars.xyz/"),
 ]
 
 entertainment_tabs = [

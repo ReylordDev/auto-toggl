@@ -15,7 +15,7 @@ for i in range(1, len(time_entries)):
         next_time_entry.start
     ) - datetime.datetime.fromisoformat(time_entry.stop)
     if (
-        timedelta < datetime.timedelta(minutes=2)
+        timedelta < datetime.timedelta(minutes=3)
         and time_entry.project_id == next_time_entry.project_id
         and time_entry.description == next_time_entry.description
     ):
