@@ -1,5 +1,4 @@
 import json
-from pprint import pprint
 from .window import Window
 from .windowsUtils import mozlz4_to_text
 import os
