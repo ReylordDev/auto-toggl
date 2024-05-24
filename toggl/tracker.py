@@ -161,6 +161,8 @@ def get_tracker_projects() -> list[Project]:
 
 
 def get_project(project_id: int) -> Project:
+    if not project_id:
+        return None
     response = requests.get(f"{workspace_url}/projects/{project_id}", headers=headers)
     if response.ok:
         project_obj = response.json()

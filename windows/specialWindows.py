@@ -100,7 +100,7 @@ class ArcBrowser(Window):
 
     def __init__(self, handle: int):
         super().__init__(handle)
-        self._priority = 4
+        # self._priority = 4
 
     def __str__(self):
         return f'ArcBrowser(Active-Space: "{self.get_space()}", Active-Tab: "{self.get_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
