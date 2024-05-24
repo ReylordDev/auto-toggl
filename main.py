@@ -20,6 +20,7 @@ def main():
     )
     logger = logging.getLogger()
     projects = get_projects()
+    print("Auto-Toggl started.")
     while True:
         logger.info("New Iteration")
         current_time_entry = get_current_time_entry()
