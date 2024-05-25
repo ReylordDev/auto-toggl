@@ -56,11 +56,11 @@ def main():
         )
         logger.info(f"New Project: {project.name if project else None}")
         logger.info(f"New Description: {new_description}")
+        # Careful, you are approach the indentation tree of doom.
         if current_time_entry:
             if current_time_entry.project_id == new_project_id:
                 if current_time_entry.description == new_description:
                     logger.info("Continuing current time entry.")
-                    pass
                 else:
                     logger.info("Same project, different description. Updating.")
                     stop_time_entry(current_time_entry.id)
@@ -78,26 +78,31 @@ def main():
                             toggl_description=new_description,
                             toggl_project_id=new_project_id,
                         )
-                        continue
                     else:
-                        current_project = get_project(current_time_entry.project_id)
-                        logger.info(f"Current project: {current_project.name}")
-                        logger.info(
-                            f"Current project priority: {current_project.get_priority()}"
-                        )
-                        if current_project.get_priority() < max_prio:
-                            logger.info(
-                                "Current project priority is lower than new window priority."
-                            )
-                            stop_time_entry(current_time_entry.id)
-                            start_time_entry(
-                                toggl_description=new_description,
-                                toggl_project_id=new_project_id,
-                            )
+                        if current_time_entry.project_id not in [
+                            project.id for project in projects
+                        ]:
+                            logger.info("Foreign project found, no action taken.")
+                            # We don't call continue becuase we want to call the divider and the sleep at the bottom.
                         else:
+                            current_project = get_project(current_time_entry.project_id)
+                            logger.info(f"Current project: {current_project.name}")
                             logger.info(
-                                "Current project priority is higher than new window priority."
+                                f"Current project priority: {current_project.get_priority()}"
                             )
+                            if current_project.get_priority() < max_prio:
+                                logger.info(
+                                    "Current project priority is lower than new window priority."
+                                )
+                                stop_time_entry(current_time_entry.id)
+                                start_time_entry(
+                                    toggl_description=new_description,
+                                    toggl_project_id=new_project_id,
+                                )
+                            else:
+                                logger.info(
+                                    "Current project priority is higher than new window priority."
+                                )
                 else:
                     logger.info("Current time entry is automatic.")
                     stop_time_entry(current_time_entry.id)
