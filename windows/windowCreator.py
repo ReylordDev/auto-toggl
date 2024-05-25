@@ -8,6 +8,7 @@ from .specialWindows import (
     NvimQT,
     NotionCalendar,
     HuntShowdown,
+    EldenRing,
 )
 from .windowsUtils import get_process_name
 from .window import Window
@@ -35,5 +36,7 @@ def create_window(handle: int):
         return NotionCalendar(handle)
     elif process == "HuntGame.exe":
         return HuntShowdown(handle)
+    elif process == "eldenring.exe":
+        return EldenRing(handle)
     else:
         return Window(handle)
