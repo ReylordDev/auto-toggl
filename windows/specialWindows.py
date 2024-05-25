@@ -421,7 +421,7 @@ class Chrome(Window):
 class NvimQT(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
-        self._priority = 4
+        self._priority = 5
 
     def __str__(self):
         return f"Journal(Foreground: {self.is_active()})"
