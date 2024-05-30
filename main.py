@@ -86,6 +86,7 @@ def main():
                             # We don't call continue becuase we want to call the divider and the sleep at the bottom.
                         else:
                             current_project = get_project(current_time_entry.project_id)
+                            assert current_project, "Current project not found."
                             logger.info(f"Current project: {current_project.name}")
                             logger.info(
                                 f"Current project priority: {current_project.get_priority()}"

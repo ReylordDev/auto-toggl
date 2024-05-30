@@ -54,14 +54,17 @@ def get_time_entries() -> list[TimeEntry]:
         return time_entries
     else:
         handleRequestErrors(response)
+        return []
 
 
 def start_time_entry(
-    toggl_description: str,
+    toggl_description: Optional[str] = None,
     toggl_project_id: Optional[int] = None,
     # start: datetime = now,
 ):
     """Start a new time-entry."""
+    if not toggl_description and not toggl_project_id:
+        raise ValueError("Both description and project id cannot be None")
     payload = {
         "billable": False,
         "created_with": "Auto-Toggl",
@@ -115,16 +118,6 @@ def continue_current_time_entry():
     return
 
 
-def replace_current_time_entry(
-    toggl_description: str, toggl_project_name: Optional[str] = None
-):
-    current = get_current_time_entry()
-    if not current:
-        return None
-    stop_time_entry(current.id)
-    return start_time_entry(toggl_description, toggl_project_name)
-
-
 def get_all_projects():
     response = requests.get(f"{workspace_url}/projects", headers=headers)
     if response.ok:
@@ -160,7 +153,7 @@ def get_tracker_projects() -> list[Project]:
     return projects  # previous method should raise anyway
 
 
-def get_project(project_id: int) -> Project:
+def get_project(project_id: int) -> Optional[Project]:
     if not project_id:
         return None
     response = requests.get(f"{workspace_url}/projects/{project_id}", headers=headers)
@@ -170,6 +163,7 @@ def get_project(project_id: int) -> Project:
         return project
     else:
         handleRequestErrors(response)
+        return None
 
 
 def delete_time_entry(time_entry_id: int):

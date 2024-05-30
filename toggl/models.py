@@ -9,7 +9,7 @@ with open("projects.json", "r") as f:
 
 class TimeEntry(BaseModel):
     at: str
-    description: str
+    description: Optional[str]
     duration: int
     id: int
     project_id: Optional[int]
