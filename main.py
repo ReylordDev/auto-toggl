@@ -1,4 +1,4 @@
-from windows import get_windows
+from windows import get_windows_by_z_index
 from toggl import (
     get_current_time_entry,
     start_time_entry,
@@ -92,13 +92,14 @@ def main():
 
         while not internet():
             logger.error("No internet connection. Retrying in 10 seconds.")
-            time.sleep(10)
+            time.sleep(30)
+
         projects = get_tracker_projects()
         while True:
             logger.info("New Iteration")
             current_time_entry = get_current_time_entry()
             logger.info(f"Current time entry: {current_time_entry.__repr__()}")
-            windows = get_windows()
+            windows = get_windows_by_z_index()
             max_prio = 0
             logger.info("Scaled priorities:")
             for i, window in enumerate(windows):

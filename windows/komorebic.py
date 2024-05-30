@@ -71,7 +71,7 @@ def get_full_visible_windows() -> list[Window]:
     all_windows = get_windows_by_z_index()
     try:
         partial_visible_windows = get_partial_visible_windows()
-    except Exception as e:
+    except Exception:
         # Komorebic is not running
         return [
             window
