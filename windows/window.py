@@ -1,3 +1,4 @@
+from typing import Union
 import win32gui
 import win32process
 
@@ -56,10 +57,10 @@ class Window:
             return "(Active) "
         return ""
 
-    def get_toggl_description(self):
+    def get_toggl_description(self) -> Union[str, None]:
         return None
 
-    def get_toggl_project_id(self):
+    def get_toggl_project_id(self) -> Union[int, None]:
         return None
 
     def get_priority(self):
