@@ -23,8 +23,3 @@ __all__ = [
     "get_time_entries",
     "delete_time_entry",
 ]
-
-
-def get_projects():
-    projects = get_tracker_projects()
-    return projects
