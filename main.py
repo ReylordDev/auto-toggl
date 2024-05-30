@@ -182,11 +182,18 @@ def main():
                                     )
                     else:
                         logger.info("Current time entry is automatic.")
+                        logger.info("Stopping current time entry.")
                         stop_time_entry(current_time_entry.id)
-                        start_time_entry(
-                            toggl_description=new_description,
-                            toggl_project_id=new_project_id,
-                        )
+                        if new_project_id is None and new_description is None:
+                            logger.info(
+                                "No new project or description. No further action taken."
+                            )
+                        else:
+                            logger.info("Starting new time entry.")
+                            start_time_entry(
+                                toggl_description=new_description,
+                                toggl_project_id=new_project_id,
+                            )
             else:
                 logger.info("No current time entry")
                 if new_project_id is None and new_description is None:
