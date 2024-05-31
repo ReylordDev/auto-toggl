@@ -36,7 +36,7 @@ def internet(host="8.8.8.8", port=53, timeout=3):
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
         return True
     except socket.error as ex:
-        logger.error(f"Internet Error: {ex}")
+        logger.warning(f"Internet Error: {ex}")
         return False
 
 
@@ -91,7 +91,7 @@ def main():
         register_sleep_handler()
 
         while not internet():
-            logger.error("No internet connection. Retrying in 10 seconds.")
+            logger.warning("No internet connection. Retrying in 10 seconds.")
             time.sleep(30)
 
         projects = get_tracker_projects()

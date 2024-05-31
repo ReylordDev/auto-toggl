@@ -249,21 +249,19 @@ class Firefox(Window):
         return tab_title
 
     def get_recently_opened_tabs(self) -> list[dict[str, str]]:
-        # TODO: Blacklist some tabs
-        # TODO: Add recency limit (time or quantity based)
         recovery_file = os.path.join(
             self.profile_path, "sessionstore-backups", "recovery.jsonlz4"
         )
         if not os.path.exists(recovery_file):
-            logger.info(f"Firefox recovery file not found: {recovery_file}")
+            logger.warning(f"Firefox recovery file not found: {recovery_file}")
             return []
         try:
             session_data = mozlz4_to_text(recovery_file)
         except PermissionError as e:
-            logger.info(f"Firefox Permission Error: {e}")
+            logger.error(f"Firefox Permission Error: {e}")
             return []
         except Exception as e:
-            logger.info(f"Firefox Error: {e}")
+            logger.error(f"Firefox Error: {e}")
             return []
         session_data = json.loads(session_data)
         tab_names = []
