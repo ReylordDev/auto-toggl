@@ -1,8 +1,6 @@
 from requests import Response
-import logging
 import time
-
-logger = logging.getLogger()
+from loguru import logger
 
 
 def handleRequestErrors(response: Response):

@@ -3,13 +3,11 @@ from .window import Window
 from .windowsUtils import mozlz4_to_text
 import os
 from tldextract import extract
-import logging
+from loguru import logger
 
 with open("projects.json", "r") as f:
     project_objs: list = json.load(f)
 project_to_id = {project["alias"]: project["id"] for project in project_objs}
-
-logger = logging.getLogger()
 
 entertainment_list = [
     ("YouTube", "https://www.youtube.com"),
@@ -270,7 +268,7 @@ class Firefox(Window):
         for window in session_data["windows"]:
             for tab in window["tabs"]:
                 for entry in tab["entries"]:
-                    title = entry["title"]
+                    title = entry.get("title", "No Title")
                     url = entry["url"]
                     tld = extract(url)
                     if tld in tab_urls:

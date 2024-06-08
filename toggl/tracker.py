@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 from datetime import datetime, timezone
 from .togglUtils import handleRequestErrors
 
-import logging
 from .models import TimeEntry, Project
+from loguru import logger
 
 load_dotenv()
 toggl_api_key = os.environ.get("TOGGL_API_KEY")
@@ -18,14 +18,14 @@ default_workspace_id = os.environ.get("TOGGL_DEFAULT_WORKSPACE_ID")
 assert toggl_api_key, "TOGGL_API_KEY environment variable not set"
 assert default_workspace_id, "TOGGL_DEFAULT_WORKSPACE_ID environment variable not set"
 
+DEFAULT_WORKSPACE_ID = default_workspace_id
+
 base_url = "https://api.track.toggl.com/api/v9"
-workspace_url = f"{base_url}/workspaces/{default_workspace_id}"
+workspace_url = f"{base_url}/workspaces/{DEFAULT_WORKSPACE_ID}"
 headers = {
     "Content-type": "application/json",
     "Authorization": f"Basic {b64encode(f'{toggl_api_key}:api_token'.encode()).decode('ascii')}",
 }
-
-logger = logging.getLogger()
 
 
 def get_current_time_entry() -> Optional[TimeEntry]:
@@ -71,7 +71,7 @@ def start_time_entry(
         "duration": -1,
         "shared_with_user_ids": [],
         "tags": [],
-        "workspace_id": int(default_workspace_id),
+        "workspace_id": int(DEFAULT_WORKSPACE_ID),
     }
     payload["description"] = toggl_description
     payload["start"] = datetime.now(timezone.utc).isoformat(timespec="seconds")

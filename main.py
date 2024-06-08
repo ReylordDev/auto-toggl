@@ -7,7 +7,7 @@ from toggl import (
     get_tracker_projects,
 )
 import time
-import logging
+from loguru import logger
 from win32gui import CreateWindowEx, WNDCLASS, RegisterClass, PumpWaitingMessages
 from win32con import WS_EX_LEFT, WM_POWERBROADCAST, PBT_APMSUSPEND
 from win32api import GetModuleHandle
@@ -16,13 +16,7 @@ import socket
 
 
 date = time.strftime("%Y-%m-%d")
-logging.basicConfig(
-    filename=f"logs/{date}.log",
-    level=logging.INFO,
-    encoding="utf-8",
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger()
+logger.add(f"logs/{date}.log", level="INFO")
 
 
 def internet(host="8.8.8.8", port=53, timeout=3):
@@ -84,134 +78,128 @@ def register_sleep_handler():
     logger.info("Sleep handler registered.")
 
 
+@logger.catch
 def main():
-    try:
-        logger.info("-" * 80)
-        print("Auto-Toggl started.")
-        register_sleep_handler()
+    logger.info("-" * 80)
+    print("Auto-Toggl started.")
+    register_sleep_handler()
 
-        while not internet():
-            logger.warning("No internet connection. Retrying in 10 seconds.")
-            time.sleep(30)
+    while not internet():
+        logger.warning("No internet connection. Retrying in 10 seconds.")
+        time.sleep(30)
 
-        projects = get_tracker_projects()
-        while True:
-            logger.info("New Iteration")
-            current_time_entry = get_current_time_entry()
-            logger.info(f"Current time entry: {current_time_entry.__repr__()}")
-            windows = get_windows_by_z_index()
-            max_prio = 0
-            logger.info("Scaled priorities:")
-            for i, window in enumerate(windows):
-                try:
-                    if i <= 3:
-                        scaled_prio = window.get_priority() * 1.5
-                    elif 3 < i <= 5:
-                        scaled_prio = window.get_priority() * 1
-                    else:
-                        scaled_prio = window.get_priority() * 0.5
+    projects = get_tracker_projects()
+    while True:
+        logger.info("New Iteration")
+        current_time_entry = get_current_time_entry()
+        logger.info(f"Current time entry: {current_time_entry.__repr__()}")
+        windows = get_windows_by_z_index()
+        max_prio = 0
+        logger.info("Scaled priorities:")
+        for i, window in enumerate(windows):
+            try:
+                if i <= 3:
+                    scaled_prio = window.get_priority() * 1.5
+                elif 3 < i <= 5:
+                    scaled_prio = window.get_priority() * 1
+                else:
+                    scaled_prio = window.get_priority() * 0.5
 
-                    logger.info(
-                        f"{i}: Priority: {window.get_priority()} Scaled: {scaled_prio},\n{window.__repr__()}\n"
+                logger.info(
+                    f"{i}: Priority: {window.get_priority()} Scaled: {scaled_prio},\n{window.__repr__()}\n"
+                )
+                if scaled_prio > max_prio:
+                    max_prio = scaled_prio
+                    max_prio_window = window
+            except Exception as e:
+                logger.error(f"Error: {e}")
+                continue
+        logger.info(f"Max priority window: {max_prio_window.__repr__()}")
+        logger.info(f"Max priority: {max_prio}")
+        new_project_id = max_prio_window.get_toggl_project_id()
+        new_description = max_prio_window.get_toggl_description()
+        project = next(
+            (project for project in projects if project.id == new_project_id),
+            None,
+        )
+        logger.info(f"New Project: {project.name if project else None}")
+        logger.info(f"New Description: {new_description}")
+        # Careful, you are approach the indentation tree of doom.
+        if current_time_entry:
+            if current_time_entry.project_id == new_project_id:
+                if current_time_entry.description == new_description:
+                    logger.info("Continuing current time entry.")
+                else:
+                    logger.info("Same project, different description. Updating.")
+                    stop_time_entry(current_time_entry.id)
+                    start_time_entry(
+                        toggl_description=new_description,
+                        toggl_project_id=new_project_id,
                     )
-                    if scaled_prio > max_prio:
-                        max_prio = scaled_prio
-                        max_prio_window = window
-                except Exception as e:
-                    logger.error(f"Error: {e}")
-                    continue
-            logger.info(f"Max priority window: {max_prio_window.__repr__()}")
-            logger.info(f"Max priority: {max_prio}")
-            new_project_id = max_prio_window.get_toggl_project_id()
-            new_description = max_prio_window.get_toggl_description()
-            project = next(
-                (project for project in projects if project.id == new_project_id),
-                None,
-            )
-            logger.info(f"New Project: {project.name if project else None}")
-            logger.info(f"New Description: {new_description}")
-            # Careful, you are approach the indentation tree of doom.
-            if current_time_entry:
-                if current_time_entry.project_id == new_project_id:
-                    if current_time_entry.description == new_description:
-                        logger.info("Continuing current time entry.")
-                    else:
-                        logger.info("Same project, different description. Updating.")
+            else:
+                if "Auto-Toggl" not in current_time_entry.tags:
+                    logger.info("Current time entry is manual.")
+                    if not current_time_entry.project_id:
+                        logger.info("Current project not found. Overriding.")
                         stop_time_entry(current_time_entry.id)
                         start_time_entry(
                             toggl_description=new_description,
                             toggl_project_id=new_project_id,
                         )
-                else:
-                    if "Auto-Toggl" not in current_time_entry.tags:
-                        logger.info("Current time entry is manual.")
-                        if not current_time_entry.project_id:
-                            logger.info("Current project not found. Overriding.")
-                            stop_time_entry(current_time_entry.id)
-                            start_time_entry(
-                                toggl_description=new_description,
-                                toggl_project_id=new_project_id,
-                            )
-                        else:
-                            if current_time_entry.project_id not in [
-                                project.id for project in projects
-                            ]:
-                                logger.info("Foreign project found, no action taken.")
-                                # We don't call continue becuase we want to call the divider and the sleep at the bottom.
-                            else:
-                                current_project = get_project(
-                                    current_time_entry.project_id
-                                )
-                                assert current_project, "Current project not found."
-                                logger.info(f"Current project: {current_project.name}")
-                                logger.info(
-                                    f"Current project priority: {current_project.get_priority()}"
-                                )
-                                if current_project.get_priority() < max_prio:
-                                    logger.info(
-                                        "Current project priority is lower than new window priority."
-                                    )
-                                    stop_time_entry(current_time_entry.id)
-                                    start_time_entry(
-                                        toggl_description=new_description,
-                                        toggl_project_id=new_project_id,
-                                    )
-                                else:
-                                    logger.info(
-                                        "Current project priority is higher than new window priority."
-                                    )
                     else:
-                        logger.info("Current time entry is automatic.")
-                        logger.info("Stopping current time entry.")
-                        stop_time_entry(current_time_entry.id)
-                        if new_project_id is None and new_description is None:
-                            logger.info(
-                                "No new project or description. No further action taken."
-                            )
+                        if current_time_entry.project_id not in [
+                            project.id for project in projects
+                        ]:
+                            logger.info("Foreign project found, no action taken.")
+                            # We don't call continue becuase we want to call the divider and the sleep at the bottom.
                         else:
-                            logger.info("Starting new time entry.")
-                            start_time_entry(
-                                toggl_description=new_description,
-                                toggl_project_id=new_project_id,
+                            current_project = get_project(current_time_entry.project_id)
+                            assert current_project, "Current project not found."
+                            logger.info(f"Current project: {current_project.name}")
+                            logger.info(
+                                f"Current project priority: {current_project.get_priority()}"
                             )
-            else:
-                logger.info("No current time entry")
-                if new_project_id is None and new_description is None:
-                    logger.info("No new project or description. No action taken.")
+                            if current_project.get_priority() < max_prio:
+                                logger.info(
+                                    "Current project priority is lower than new window priority."
+                                )
+                                stop_time_entry(current_time_entry.id)
+                                start_time_entry(
+                                    toggl_description=new_description,
+                                    toggl_project_id=new_project_id,
+                                )
+                            else:
+                                logger.info(
+                                    "Current project priority is higher than new window priority."
+                                )
                 else:
-                    logger.info("Starting new time entry.")
-                    start_time_entry(
-                        toggl_description=new_description,
-                        toggl_project_id=new_project_id,
-                    )
-            logger.info("-" * 80)
-            for i in range(30):
-                PumpWaitingMessages()
-                time.sleep(1)
-    except Exception as e:
-        logger.error(f"Error: {e}")
-        logger.info("Exiting...")
-        sys.exit(1)
+                    logger.info("Current time entry is automatic.")
+                    logger.info("Stopping current time entry.")
+                    stop_time_entry(current_time_entry.id)
+                    if new_project_id is None and new_description is None:
+                        logger.info(
+                            "No new project or description. No further action taken."
+                        )
+                    else:
+                        logger.info("Starting new time entry.")
+                        start_time_entry(
+                            toggl_description=new_description,
+                            toggl_project_id=new_project_id,
+                        )
+        else:
+            logger.info("No current time entry")
+            if new_project_id is None and new_description is None:
+                logger.info("No new project or description. No action taken.")
+            else:
+                logger.info("Starting new time entry.")
+                start_time_entry(
+                    toggl_description=new_description,
+                    toggl_project_id=new_project_id,
+                )
+        logger.info("-" * 80)
+        for i in range(30):
+            PumpWaitingMessages()
+            time.sleep(1)
 
 
 if __name__ == "__main__":

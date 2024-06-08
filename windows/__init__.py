@@ -3,9 +3,7 @@ from .windowCreator import create_window
 import win32gui
 import win32con
 from .window import Window
-from logging import getLogger
-
-logger = getLogger()
+from loguru import logger
 
 
 # Legacy
