@@ -1,17 +1,34 @@
 from requests import Response
-import time
 from loguru import logger
 
 
+class GatewayTimeout(Exception):
+    pass
+
+
+class BadGateway(Exception):
+    pass
+
+
 def handleRequestErrors(response: Response):
+    """
+    Handle request errors and raise appropriate exceptions.
+
+    Args:
+        response (Response): The response object from the request.
+
+    Raises:
+        GatewayTimeout: Raised when the status code is 504.
+        BadGateway: Raised when the status code is 502.
+        Exception: Raised when the status code is unexpected.
+    """
     status_code = response.status_code
     if status_code == 504:
-        logger.error(f"504: Timeout: {response.text}")
-        time.sleep(5)
-        return
-    if status_code == 502:
+        logger.error(f"504: Gateway Timeout: {response.text}")
+        raise GatewayTimeout("TogglRequest failed")
+    elif status_code == 502:
         logger.error(f"502: Bad Gateway: {response.text}")
-        time.sleep(5)
-        return
-    logger.error(f"Request Unexpectedly failed: {response.reason}")
-    raise Exception("TogglRequest failed")
+        raise BadGateway("TogglRequest failed")
+    else:
+        logger.error(f"Request Unexpectedly failed: {response.reason}")
+        raise Exception("TogglRequest failed")
