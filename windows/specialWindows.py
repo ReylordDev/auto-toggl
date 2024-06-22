@@ -488,3 +488,16 @@ class EldenRing(Window):
     def get_toggl_project_id(self):
         id = project_to_id["Gaming"]
         return id
+
+
+class RocketLeague(Window):
+    def __init__(self, handle: int):
+        super().__init__(handle)
+        self._priority = 10
+
+    def get_toggl_description(self):
+        return "Rocket League"
+
+    def get_toggl_project_id(self):
+        id = project_to_id["Gaming"]
+        return id

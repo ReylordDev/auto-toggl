@@ -30,5 +30,7 @@ def handleRequestErrors(response: Response):
         logger.error(f"502: Bad Gateway: {response.text}")
         raise BadGateway("TogglRequest failed")
     else:
-        logger.error(f"Request Unexpectedly failed: {response.reason}")
+        logger.error(
+            f"Request Unexpectedly failed: {response.reason}, {response.text}, {response.status_code}"
+        )
         raise Exception("TogglRequest failed")

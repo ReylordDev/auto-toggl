@@ -9,6 +9,7 @@ from .specialWindows import (
     NotionCalendar,
     HuntShowdown,
     EldenRing,
+    RocketLeague,
 )
 from .windowsUtils import get_process_name
 from .window import Window
@@ -38,5 +39,7 @@ def create_window(handle: int):
         return HuntShowdown(handle)
     elif process == "eldenring.exe":
         return EldenRing(handle)
+    elif process == "RocketLeague.exe":
+        return RocketLeague(handle)
     else:
         return Window(handle)
