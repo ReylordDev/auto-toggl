@@ -21,7 +21,7 @@ def stitch_time_entries():
             and time_entry.description == next_time_entry.description
         ):
             print(f"Stitching {time_entry.id} and {next_time_entry.id}")
-            update_time_entry(time_entry.id, next_time_entry.stop)
+            update_time_entry(time_entry.id, {"stop": next_time_entry.stop})
             delete_time_entry(next_time_entry.id)
 
 

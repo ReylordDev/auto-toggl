@@ -41,9 +41,14 @@ def get_current_time_entry() -> Optional[TimeEntry]:
         handleRequestErrors(response)
 
 
-def get_time_entries() -> list[TimeEntry]:
+def get_time_entries(
+    start_date: Optional[str] = None, end_date: Optional[str] = None
+) -> list[TimeEntry]:
     response = requests.get(
         f"{base_url}/me/time_entries",
+        params={"start_date": start_date, "end_date": end_date}
+        if start_date and end_date
+        else {},
         headers=headers,
     )
     if response.ok:
@@ -176,11 +181,11 @@ def delete_time_entry(time_entry_id: int):
         handleRequestErrors(response)
 
 
-def update_time_entry(time_entry_id: int, stop: str):
+def update_time_entry(time_entry_id: int, update: dict):
     response = requests.put(
         f"{workspace_url}/time_entries/{time_entry_id}",
         headers=headers,
-        json={"stop": stop},
+        json=update,
     )
     if response.ok:
         return status_codes.codes.ok
