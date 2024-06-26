@@ -14,6 +14,8 @@ from win32con import WS_EX_LEFT, WM_POWERBROADCAST, PBT_APMSUSPEND
 from win32api import GetModuleHandle
 import sys
 import socket
+from delete_botched_time_entries import delete_botched_time_entries
+from stitch_time_entries import stitch_time_entries
 
 
 date = time.strftime("%Y-%m-%d")
@@ -88,6 +90,9 @@ def main():
     while not internet():
         logger.warning("No internet connection. Retrying in 10 seconds.")
         time.sleep(30)
+
+    delete_botched_time_entries()
+    stitch_time_entries()
 
     projects = get_tracker_projects()
     while True:
