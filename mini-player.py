@@ -56,7 +56,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
         self.title("Time Tracker")
         self.w = 400
         self.h = 60
-        self.x = 3000
+        self.x = 3005
         self.y = 0
         self.geometry("%dx%d+%d+%d" % (self.w, self.h, self.x, self.y))
         self.attributes("-topmost", True)
