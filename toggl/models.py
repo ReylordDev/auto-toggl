@@ -36,6 +36,17 @@ class TimeEntry(BaseModel):
         else:
             return f'(TogglDescripton:"{self.description}", started at {start})'
 
+    def get_duration(self):
+        if self.stop:
+            start = datetime.fromisoformat(self.start)
+            stop = datetime.fromisoformat(self.stop)
+            duration = stop - start
+            return duration
+        else:
+            current_time = datetime.now(timezone.utc)
+            duration = current_time - datetime.fromisoformat(self.start)
+            return duration
+
 
 class StartTimeEntryArgs(BaseModel):
     title: str = Field(description="The title of the time-entry.")
@@ -63,7 +74,7 @@ class Project(BaseModel):
     workspace_id: int
 
     def __str__(self):
-        return f'"{self.name}", ID:{self.id})'
+        return f'("{self.name}", ID:{self.id})'
 
     def llm_repr(self):
         return f'"{self.name}", ID:{self.id})'

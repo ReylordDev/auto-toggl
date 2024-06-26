@@ -126,13 +126,14 @@ def continue_current_time_entry():
 def get_all_projects():
     response = requests.get(f"{workspace_url}/projects", headers=headers)
     if response.ok:
-        projects = []
+        projects: list[Project] = []
         for project_obj in response.json():
             project = Project(**project_obj)
             projects.append(project)
         return projects
     else:
         handleRequestErrors(response)
+        return []
 
 
 def get_tracker_projects() -> list[Project]:
