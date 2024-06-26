@@ -276,6 +276,7 @@ class Firefox(Window):
                     tab_urls.append(tld)
                     tab_names.append(title)
                     tabs.append({"title": title, "url": url})
+        tabs.reverse()
         return tabs
 
     def get_type_and_cause(self):
