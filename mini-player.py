@@ -1,4 +1,5 @@
 from datetime import date
+import time
 import tkinter as tk
 from typing import List, Optional
 
@@ -11,6 +12,7 @@ from toggl import (
 from toggl.models import Project, TimeEntry
 from loguru import logger
 
+from toggl.togglUtils import BadGateway, GatewayTimeout
 from toggl.tracker import get_time_entries
 
 logger.add("logs/mini-player.log", level="INFO")
@@ -329,9 +331,17 @@ class TimeTrackerMiniPlayer(tk.Tk):
         self.overrideredirect(not current_state)
 
 
+@logger.catch
 def start_mini_player():
-    app = TimeTrackerMiniPlayer()
-    app.mainloop()
+    try:
+        app = TimeTrackerMiniPlayer()
+        app.mainloop()
+    except BadGateway:
+        logger.error("Bad Gateway. Retrying in 10 seconds.")
+        time.sleep(10)
+    except GatewayTimeout:
+        logger.error("Gateway Timeout. Retrying in 10 seconds.")
+        time.sleep(10)
 
 
 if __name__ == "__main__":
