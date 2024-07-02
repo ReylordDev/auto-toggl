@@ -29,6 +29,9 @@ def handleRequestErrors(response: Response):
     elif status_code == 502:
         logger.error(f"502: Bad Gateway: {response.text}")
         raise BadGateway("TogglRequest failed")
+    elif status_code == 409:
+        logger.error(f"409: Conflict: {response.text}")
+        return
     else:
         logger.error(
             f"Request Unexpectedly failed: {response.reason}, {response.text}, {response.status_code}"

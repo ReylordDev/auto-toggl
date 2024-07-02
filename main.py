@@ -1,4 +1,5 @@
 from toggl.togglUtils import BadGateway, GatewayTimeout
+from utils import internet
 from windows import get_windows_by_z_index
 from toggl import (
     get_current_time_entry,
@@ -13,28 +14,12 @@ from win32gui import CreateWindowEx, WNDCLASS, RegisterClass, PumpWaitingMessage
 from win32con import WS_EX_LEFT, WM_POWERBROADCAST, PBT_APMSUSPEND
 from win32api import GetModuleHandle
 import sys
-import socket
 from delete_botched_time_entries import delete_botched_time_entries
 from stitch_time_entries import stitch_time_entries
 
 
 date = time.strftime("%Y-%m-%d")
 logger.add(f"logs/{date}.log", level="INFO")
-
-
-def internet(host="8.8.8.8", port=53, timeout=3):
-    """
-    Host: 8.8.8.8 (google-public-dns-a.google.com)
-    OpenPort: 53/tcp
-    Service: domain (DNS/TCP)
-    """
-    try:
-        socket.setdefaulttimeout(timeout)
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-        return True
-    except socket.error as ex:
-        logger.warning(f"Internet Error: {ex}")
-        return False
 
 
 def register_sleep_handler():

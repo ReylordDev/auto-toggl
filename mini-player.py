@@ -342,6 +342,10 @@ def start_mini_player():
     except GatewayTimeout:
         logger.error("Gateway Timeout. Retrying in 10 seconds.")
         time.sleep(10)
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        time.sleep(30)
+    start_mini_player()
 
 
 if __name__ == "__main__":

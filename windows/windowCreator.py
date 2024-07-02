@@ -4,6 +4,7 @@ from .specialWindows import (
     Firefox,
     Notion,
     Spotify,
+    StardewValley,
     VSCode,
     NvimQT,
     NotionCalendar,
@@ -41,5 +42,7 @@ def create_window(handle: int):
         return EldenRing(handle)
     elif process == "RocketLeague.exe":
         return RocketLeague(handle)
+    elif process == "Stardew Valley.exe":
+        return StardewValley(handle)
     else:
         return Window(handle)
