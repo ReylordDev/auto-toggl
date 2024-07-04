@@ -235,6 +235,8 @@ class TimeTrackerMiniPlayer(tk.Tk):
             text_split = text.split(" • ")
             description = text_split[0]
             project_name = text_split[1] if len(text_split) > 1 else None
+            if "@" in description:
+                description, project_name = description.split(" @")
             logger.debug(f"Description: {description}")
             logger.debug(f"Project: {project_name}")
             project = next((p for p in self.projects if p.name == project_name), None)
