@@ -325,7 +325,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
             label="Override redirect", command=self.toggle_override_redirect
         )
         context_menu.add_separator()
-        context_menu.add_command(label="Exit", command=self.quit)
+        context_menu.add_command(label="Exit", command=on_exit)
         context_menu.tk_popup(event.x_root, event.y_root)
 
     def toggle_always_on_top(self):
@@ -337,10 +337,16 @@ class TimeTrackerMiniPlayer(tk.Tk):
         self.overrideredirect(not current_state)
 
 
+def on_exit():
+    logger.info("Exiting")
+    exit()
+
+
 @logger.catch
 def start_mini_player():
     try:
         app = TimeTrackerMiniPlayer()
+        app.protocol("WM_DELETE_WINDOW", on_exit)
         app.mainloop()
     except BadGateway:
         logger.error("Bad Gateway. Retrying in 10 seconds.")
