@@ -288,16 +288,20 @@ class TimeTrackerMiniPlayer(tk.Tk):
         # logger.debug(f"Project Hints: {project_hints}")
         # self.hint_list.bind("<<ListboxSelect>>", self.on_hint_select)
         self.bind("<Tab>", self.on_hint_tab)
+        self.bind("<Shift-Tab>", lambda e: self.on_hint_tab(e, forward=False))
         self.bind("<Return>", self.on_hint_confirm)
         self.hint_list.bind("<Double-Button-1>", self.on_hint_confirm)
         self.hint_list.configure(cursor="hand2")
 
-    def on_hint_tab(self, event):
+    def on_hint_tab(self, event, forward=True):
         cur = self.hint_list.curselection()
         if not cur:
             self.hint_list.selection_set(0)
         else:
-            next_index = (cur[0] + 1) % self.hint_list.size()
+            if forward:
+                next_index = (cur[0] + 1) % self.hint_list.size()
+            else:
+                next_index = (cur[0] - 1) % self.hint_list.size()
             logger.debug(f"Next selection, index: {next_index}")
             self.hint_list.selection_clear(cur)
             self.hint_list.selection_set(next_index)
