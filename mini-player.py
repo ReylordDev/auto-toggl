@@ -242,10 +242,10 @@ class TimeTrackerMiniPlayer(tk.Tk):
                 logger.info(
                     f"Starting time entry for {description} with project {project.name}"
                 )
-                start_time_entry(description, project.id)
+                start_time_entry(description, project.id, tags=["mini-player"])
             elif description:
                 logger.info(f"Starting time entry for {description}")
-                start_time_entry(description)
+                start_time_entry(description, tags=["mini-player"])
         self.update_current_entry()
 
     def on_description_update(self, var, index, mode):

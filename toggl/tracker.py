@@ -1,5 +1,4 @@
 import os
-from pprint import pprint
 from typing import Optional
 import requests
 from requests import status_codes
@@ -65,6 +64,7 @@ def get_time_entries(
 def start_time_entry(
     toggl_description: Optional[str] = None,
     toggl_project_id: Optional[int] = None,
+    tags: Optional[list[str]] = ["Auto-Toggl"],
     # start: datetime = now,
 ):
     """Start a new time-entry."""
@@ -75,12 +75,11 @@ def start_time_entry(
         "created_with": "Auto-Toggl",
         "duration": -1,
         "shared_with_user_ids": [],
-        "tags": [],
         "workspace_id": int(DEFAULT_WORKSPACE_ID),
     }
     payload["description"] = toggl_description
     payload["start"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    payload["tags"] = ["Auto-Toggl"]
+    payload["tags"] = tags
     if toggl_project_id:
         payload["pid"] = toggl_project_id
     else:
