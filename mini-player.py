@@ -211,7 +211,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
                 self.description_entry.pack(side="top", fill="both", expand=True)
                 self.project_var.set("")
                 self.project_display.pack_forget()
-                self.toggle_button.config(text="Start", bg="#bc5ab1")
+                self.toggle_button.config(text="Start", bg=BG_COLOR)
         self.after(
             ENTRY_REFRESH_INTERVAL, self.update_current_entry
         )  # Update every 5 seconds
