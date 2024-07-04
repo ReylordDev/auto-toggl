@@ -14,7 +14,7 @@ def get_windows():
     return windows
 
 
-def get_windows_by_z_index():
+def get_windows_by_z_index() -> list[Window]:
     top_handle = win32gui.GetTopWindow(win32gui.GetDesktopWindow())
     iterator_handle = top_handle
     visible_windows = []

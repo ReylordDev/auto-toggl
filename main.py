@@ -1,3 +1,5 @@
+from typing import Optional
+from toggl.models import Project, TimeEntry
 from toggl.togglUtils import BadGateway, GatewayTimeout
 from utils import internet
 from windows import get_windows_by_z_index
@@ -66,19 +68,24 @@ def register_sleep_handler():
     logger.info("Sleep handler registered.")
 
 
-def handle_same_project(current_time_entry, new_description):
-    if current_time_entry.description == new_description:
-        logger.info("Continuing current time entry.")
+def handle_same_project(current_time_entry: TimeEntry, new_description: Optional[str]):
+    if not new_description:
+        logger.info("Same project, no new description. No action taken.")
     else:
-        logger.info("Same project, different description. Updating.")
-        stop_time_entry(current_time_entry.id)
-        start_time_entry(
-            toggl_description=new_description,
-            toggl_project_id=current_time_entry.project_id,
-        )
+        if current_time_entry.description == new_description:
+            logger.info("Continuing current time entry.")
+        else:
+            logger.info("Same project, different description. Updating.")
+            stop_time_entry(current_time_entry.id)
+            start_time_entry(
+                toggl_description=new_description,
+                toggl_project_id=current_time_entry.project_id,
+            )
 
 
-def handle_no_current_entry(new_project_id, new_description):
+def handle_no_current_entry(
+    new_project_id: Optional[int], new_description: Optional[str]
+):
     logger.info("No current time entry")
     if new_project_id is None and new_description is None:
         logger.info("No new project or description. No action taken.")
@@ -91,7 +98,11 @@ def handle_no_current_entry(new_project_id, new_description):
 
 
 def handle_manual_entry(
-    current_time_entry, new_project_id, new_description, projects, max_prio
+    current_time_entry: TimeEntry,
+    new_project_id: Optional[int],
+    new_description: Optional[str],
+    projects: list[Project],
+    max_prio: float,
 ):
     if not current_time_entry.project_id:
         logger.info("Current project not found. Overriding.")
@@ -120,7 +131,11 @@ def handle_manual_entry(
         logger.info("Current project priority is higher than new window priority.")
 
 
-def handle_automatic_entry(current_time_entry, new_project_id, new_description):
+def handle_automatic_entry(
+    current_time_entry: TimeEntry,
+    new_project_id: Optional[int],
+    new_description: Optional[str],
+):
     logger.info("Current time entry is automatic.")
     logger.info("Stopping current time entry.")
     stop_time_entry(current_time_entry.id)
@@ -134,7 +149,11 @@ def handle_automatic_entry(current_time_entry, new_project_id, new_description):
 
 
 def handle_time_entry(
-    current_time_entry, new_project_id, new_description, projects, max_prio
+    current_time_entry: Optional[TimeEntry],
+    new_project_id: Optional[int],
+    new_description: Optional[str],
+    projects: list[Project],
+    max_prio: float,
 ):
     if not current_time_entry:
         return handle_no_current_entry(new_project_id, new_description)

@@ -79,7 +79,7 @@ class Project(BaseModel):
     def llm_repr(self):
         return f'"{self.name}", ID:{self.id})'
 
-    def get_priority(self):
+    def get_priority(self) -> int:
         for project_obj in project_objs:
             if project_obj["id"] == self.id:
                 return project_obj["priority"]
