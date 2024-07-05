@@ -27,7 +27,7 @@ def get_all_entries():
     today = date.today()
 
     start = today.replace(month=today.month - 1)
-    end = today
+    end = today.replace(day=today.day + 1)
 
     entries = get_time_entries(
         start_date=start.strftime("%Y-%m-%d"), end_date=end.strftime("%Y-%m-%d")
@@ -117,10 +117,10 @@ class TimeTrackerMiniPlayer(tk.Tk):
             insertbackground="white",
             font=(FONT_FAMILY, 20),
             border=0,
-            width=0,
+            width=15,
             takefocus=0,
         )
-        self.description_entry.pack(side="top", fill="both", expand=True)
+        self.description_entry.pack(side="top", fill="both")
 
         # Project display
         self.project_display = tk.Entry(
@@ -133,7 +133,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
             insertofftime=0,
             font=(FONT_FAMILY, 14),
             border=0,
-            width=0,
+            width=10,
             state="readonly",
         )
 
@@ -142,7 +142,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
             self,
             text="Start",
             command=self.toggle_timer,
-            bg="#bc5ab1",
+            bg=BG_COLOR,
             fg="white",
             font=(FONT_FAMILY, 20),
             relief="flat",
@@ -208,7 +208,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
                 # Clear window
                 self.description_var.set("")
                 self.description_display.pack_forget()
-                self.description_entry.pack(side="top", fill="both", expand=True)
+                self.description_entry.pack(side="top", fill="both")
                 self.project_var.set("")
                 self.project_display.pack_forget()
                 self.toggle_button.config(text="Start", bg=BG_COLOR)
