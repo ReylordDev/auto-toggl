@@ -1,3 +1,4 @@
+from http.client import INTERNAL_SERVER_ERROR
 from requests import Response
 from loguru import logger
 
@@ -7,6 +8,10 @@ class GatewayTimeout(Exception):
 
 
 class BadGateway(Exception):
+    pass
+
+
+class InternalServerError(Exception):
     pass
 
 
@@ -26,6 +31,9 @@ def handleRequestErrors(response: Response):
     if status_code == 504:
         logger.error(f"504: Gateway Timeout: {response.text}")
         raise GatewayTimeout("TogglRequest failed")
+    elif status_code == 500:
+        logger.error(f"500: Internal Server Error: {response.text}")
+        raise InternalServerError("TogglRequest failed")
     elif status_code == 502:
         logger.error(f"502: Bad Gateway: {response.text}")
         raise BadGateway("TogglRequest failed")

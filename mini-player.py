@@ -12,7 +12,7 @@ from toggl import (
 from toggl.models import Project, TimeEntry
 from loguru import logger
 
-from toggl.togglUtils import BadGateway, GatewayTimeout
+from toggl.togglUtils import BadGateway, GatewayTimeout, InternalServerError
 from toggl.tracker import get_time_entries
 
 logger.add("logs/mini-player.log", level="INFO")
@@ -351,6 +351,9 @@ def start_mini_player():
     except BadGateway:
         logger.error("Bad Gateway. Retrying in 10 seconds.")
         time.sleep(10)
+    except InternalServerError:
+        logger.error("Internal Server Error. Retrying in 1 minute.")
+        time.sleep(60)
     except GatewayTimeout:
         logger.error("Gateway Timeout. Retrying in 10 seconds.")
         time.sleep(10)
