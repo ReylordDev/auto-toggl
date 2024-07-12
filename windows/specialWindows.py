@@ -207,9 +207,14 @@ class Spotify(Window):
 
 
 class Firefox(Window):
+    # TODO make this automatic
     PROFILE_NAME = "1doawgbs.default"
+    DEV_PROFILE_NAME = "wpicxufb.dev-edition-default"
     profile_path = os.path.join(
         os.environ["APPDATA"], "Mozilla", "Firefox", "Profiles", PROFILE_NAME
+    )
+    dev_profile_path = os.path.join(
+        os.environ["APPDATA"], "Mozilla", "Firefox", "Profiles", DEV_PROFILE_NAME
     )
 
     def __init__(self, handle: int):
@@ -251,8 +256,12 @@ class Firefox(Window):
             self.profile_path, "sessionstore-backups", "recovery.jsonlz4"
         )
         if not os.path.exists(recovery_file):
-            logger.warning(f"Firefox recovery file not found: {recovery_file}")
-            return []
+            recovery_file = os.path.join(
+                self.dev_profile_path, "sessionstore-backups", "recovery.jsonlz4"
+            )
+            if not os.path.exists(recovery_file):
+                logger.warning(f"Firefox recovery file not found: {recovery_file}")
+                return []
         try:
             session_data = mozlz4_to_text(recovery_file)
         except PermissionError as e:
