@@ -19,7 +19,7 @@ logger.add("logs/mini-player.log", level="INFO")
 
 ENTRY_REFRESH_INTERVAL = 5000  # 5 seconds
 DISPLAY_REFRESH_INTERVAL = 1000  # 1 second
-FONT_FAMILY = "Segoe UI Semilight"
+FONT_FAMILY = "Roboto Light"
 BG_COLOR = "#191919"
 
 
@@ -101,7 +101,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
             readonlybackground=BG_COLOR,
             foreground="white",
             insertbackground="white",
-            font=(FONT_FAMILY, 16),
+            font=(FONT_FAMILY, 18),
             border=0,
             width=0,
             state="readonly",
@@ -115,12 +115,12 @@ class TimeTrackerMiniPlayer(tk.Tk):
             readonlybackground=BG_COLOR,
             foreground="white",
             insertbackground="white",
-            font=(FONT_FAMILY, 20),
+            font=(FONT_FAMILY, 22),
             border=0,
             width=15,
             takefocus=0,
         )
-        self.description_entry.pack(side="top", fill="both")
+        self.description_entry.pack(side="left", fill="both")
 
         # Project display
         self.project_display = tk.Entry(
@@ -131,7 +131,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
             foreground="white",
             insertbackground="white",
             insertofftime=0,
-            font=(FONT_FAMILY, 14),
+            font=(FONT_FAMILY, 16),
             border=0,
             width=10,
             state="readonly",
@@ -144,7 +144,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
             command=self.toggle_timer,
             bg=BG_COLOR,
             fg="white",
-            font=(FONT_FAMILY, 20),
+            font=(FONT_FAMILY, 22),
             relief="flat",
             width=4,
             cursor="hand2",
@@ -157,7 +157,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
             textvariable=self.time_var,
             bg=BG_COLOR,
             fg="white",
-            font=(FONT_FAMILY, 20),
+            font=(FONT_FAMILY, 22),
             padx=10,
         )
         self.time_label.pack(side="right", fill="y", expand=False)
@@ -175,7 +175,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
             self.hint_window,
             bg=BG_COLOR,
             fg="white",
-            font=(FONT_FAMILY, 14),
+            font=(FONT_FAMILY, 16),
             border=0,
             selectmode="single",
         )
@@ -283,7 +283,7 @@ class TimeTrackerMiniPlayer(tk.Tk):
         font_size = int(self.hint_list.config()["font"][-1].split(" ")[-1])  # type: ignore
         logger.debug(f"Font size: {font_size}")
         self.hint_window.geometry(
-            f"{self.winfo_width()}x{self.hint_list.size() * font_size * 2 + 10}+{self.winfo_x()}+{self.winfo_y() + self.winfo_height()}"
+            f"{self.winfo_width()}x{self.hint_list.size() * font_size * 2 + 8}+{self.winfo_x()}+{self.winfo_y() + self.winfo_height()}"
         )
         logger.debug(f"Hint window geometry: {self.hint_window.geometry()}")
         logger.debug(f"Description Hints: {description_hints}")
