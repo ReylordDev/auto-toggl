@@ -289,12 +289,15 @@ class Firefox(Window):
         return tabs
 
     def get_type_and_cause(self):
-        # TODO: Prioritize based on recency
+        # match recent tab urls to entertainment sites
         recent_tabs = self.get_recently_opened_tabs()
-        for entertainment_site in entertainment_list:
-            for tab in recent_tabs:
-                if entertainment_site[1] in tab["url"]:
+        for recent_title, recent_url in recent_tabs:
+            for entertainment_site in entertainment_list:
+                if entertainment_site[1] in recent_url:
                     return "Entertainment", entertainment_site[0]
+
+        # match current tab to entertainment sites
+        for entertainment_site in entertainment_list:
             if entertainment_site[0] in self.get_current_tab():
                 return "Entertainment", entertainment_site[0]
 
