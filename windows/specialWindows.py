@@ -291,9 +291,9 @@ class Firefox(Window):
     def get_type_and_cause(self):
         # match recent tab urls to entertainment sites
         recent_tabs = self.get_recently_opened_tabs()
-        for recent_title, recent_url in recent_tabs:
+        for recent_tab in recent_tabs:
             for entertainment_site in entertainment_list:
-                if entertainment_site[1] in recent_url:
+                if entertainment_site[1] in recent_tab["url"]:
                     return "Entertainment", entertainment_site[0]
 
         # match current tab to entertainment sites
