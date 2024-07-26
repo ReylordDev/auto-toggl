@@ -88,9 +88,13 @@ class ArcBrowser(Window):
     local_appdata_folder = os.environ.get("LOCALAPPDATA")
     assert local_appdata_folder is not None
     # state_folder = os.path.join(local_appdata_folder, "Arc")
-    ARC_PACKAGE_NAME = "TheBrowserCompany.Arc_ttt1ap7aakyb4"
+    packages_folder = os.path.join(local_appdata_folder, "Packages")
+    for package in os.listdir(packages_folder):
+        if "TheBrowserCompany.Arc" in package:
+            ARC_PACKAGE_NAME = package
+            break
     state_folder = os.path.join(
-        local_appdata_folder, "Packages", ARC_PACKAGE_NAME, "LocalCache", "Local", "Arc"
+        packages_folder, "Packages", ARC_PACKAGE_NAME, "LocalCache", "Local", "Arc"
     )
     assert os.path.exists(
         state_folder
@@ -291,15 +295,16 @@ class Firefox(Window):
     def get_type_and_cause(self):
         # match recent tab urls to entertainment sites
         recent_tabs = self.get_recently_opened_tabs()
-        for recent_tab in recent_tabs:
-            for entertainment_site in entertainment_list:
-                if entertainment_site[1] in recent_tab["url"]:
-                    return "Entertainment", entertainment_site[0]
 
         # match current tab to entertainment sites
         for entertainment_site in entertainment_list:
             if entertainment_site[0] in self.get_current_tab():
                 return "Entertainment", entertainment_site[0]
+
+        for recent_tab in recent_tabs:
+            for entertainment_site in entertainment_list:
+                if entertainment_site[1] in recent_tab["url"]:
+                    return "Entertainment", entertainment_site[0]
 
         for habit_site in habits_list:
             for tab in recent_tabs:
