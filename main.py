@@ -172,7 +172,7 @@ def handle_time_entry(
 @logger.catch
 def main():
     logger.info("-" * 80)
-    print("Auto-Toggl started.")
+    logger.info("Auto-Toggl started.")
     register_sleep_handler()
 
     while not internet():
@@ -190,19 +190,12 @@ def main():
             logger.info(f"Current time entry: {current_time_entry.__repr__()}")
             windows = get_windows_by_z_index()
             max_prio = 0
-            logger.info("Scaled priorities:")
-            for i, window in enumerate(windows):
+            for z_index, window in enumerate(windows):
                 try:
-                    if i <= 3:
-                        scaled_prio = window.get_priority() * 1.5
-                    elif 3 < i <= 5:
-                        scaled_prio = window.get_priority() * 1
-                    else:
-                        scaled_prio = window.get_priority() * 0.5
+                    window.scale_priority(z_index)
+                    scaled_prio = window.get_priority()
 
-                    logger.info(
-                        f"{i}: Priority: {window.get_priority()} Scaled: {scaled_prio},\n{window.__repr__()}\n"
-                    )
+                    logger.info(f"Window: {window.__repr__()}")
                     if scaled_prio > max_prio:
                         max_prio = scaled_prio
                         max_prio_window = window

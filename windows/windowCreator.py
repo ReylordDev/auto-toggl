@@ -1,16 +1,13 @@
+from loguru import logger
 from .specialWindows import (
     ArcBrowser,
     Chrome,
     Firefox,
+    Game,
     Notion,
     Spotify,
-    StardewValley,
     VSCode,
-    NvimQT,
     NotionCalendar,
-    HuntShowdown,
-    EldenRing,
-    RocketLeague,
 )
 from .windowsUtils import get_process_name
 from .window import Window
@@ -32,17 +29,16 @@ def create_window(handle: int):
         return Notion(handle)
     elif process == "chrome.exe":
         return Chrome(handle)
-    elif process == "nvim-qt.exe":
-        return NvimQT(handle)
     elif process == "Notion Calendar.exe":
         return NotionCalendar(handle)
     elif process == "HuntGame.exe":
-        return HuntShowdown(handle)
-    elif process == "eldenring.exe":
-        return EldenRing(handle)
+        return Game(handle, "Hunt: Showdown")
+    elif process == "eldenring.exe" or process == "ersc_launcher.exe":
+        return Game(handle, "Elden Ring")
     elif process == "RocketLeague.exe":
-        return RocketLeague(handle)
+        return Game(handle, "Rocket League")
     elif process == "Stardew Valley.exe":
-        return StardewValley(handle)
+        return Game(handle, "Stardew Valley")
     else:
+        logger.warning(f"Tracking Unknown Process: {process}")
         return Window(handle)

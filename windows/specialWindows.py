@@ -1,4 +1,5 @@
 import json
+import time
 from .window import Window
 from .windowsUtils import mozlz4_to_text
 import os
@@ -9,25 +10,16 @@ with open("projects.json", "r") as f:
     project_objs: list = json.load(f)
 project_to_id = {project["alias"]: project["id"] for project in project_objs}
 
-entertainment_list = [
+entertainment_sites = [
     ("YouTube", "https://www.youtube.com"),
     ("Reddit", "https://www.reddit.com"),
     ("Twitter", "https://x.com"),
     ("Twitch", "https://www.twitch.tv"),
-    ("Wookieepedia", "https://starwars.fandom.com"),
-    ("TimeGuessr", "https://timeguessr.com"),
-    ("123Movies", "https://ww4.123moviesfree.net"),
-    ("Connect-The-Stars", "https://connectthestars.xyz/"),
 ]
 
 entertainment_tabs = [
     ("Everything GTA RP related!", "Reddit"),
     ("X", "Twitter"),
-]
-
-habits_list = [
-    ("Duolingo", "https://www.duolingo.com"),
-    # ("Monkeytype", "https://monkeytype.com"),
 ]
 
 
@@ -85,24 +77,25 @@ class VSCode(Window):
 
 
 class ArcBrowser(Window):
-    local_appdata_folder = os.environ.get("LOCALAPPDATA")
-    assert local_appdata_folder is not None
-    # state_folder = os.path.join(local_appdata_folder, "Arc")
-    packages_folder = os.path.join(local_appdata_folder, "Packages")
-    for package in os.listdir(packages_folder):
-        if "TheBrowserCompany.Arc" in package:
-            ARC_PACKAGE_NAME = package
-            break
-    state_folder = os.path.join(
-        packages_folder, "Packages", ARC_PACKAGE_NAME, "LocalCache", "Local", "Arc"
-    )
-    assert os.path.exists(
-        state_folder
-    ), f"The Arc state folder path is not correct: {state_folder}"
-
     def __init__(self, handle: int):
         super().__init__(handle)
-        # self._priority = 4
+
+        # Find the Arc state folder
+        local_appdata_folder = os.environ.get("LOCALAPPDATA")
+        assert (
+            local_appdata_folder is not None
+        ), "LOCALAPPDATA environment variable not found"
+        packages_folder = os.path.join(local_appdata_folder, "Packages")
+        for package in os.listdir(packages_folder):
+            if "TheBrowserCompany.Arc" in package:
+                ARC_PACKAGE_NAME = package
+                break
+        self.state_folder = os.path.join(
+            packages_folder, ARC_PACKAGE_NAME, "LocalCache", "Local", "Arc"
+        )
+        assert os.path.exists(
+            self.state_folder
+        ), f"The Arc state folder path is not correct: {self.state_folder}"
 
     def __str__(self):
         return f'ArcBrowser(Active-Space: "{self.get_space()}", Active-Tab: "{self.get_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -162,8 +155,32 @@ class ArcBrowser(Window):
                 return space_name
         return "No Space"
 
+    def get_type_and_cause(self):
+        # match current tab to entertainment sites
+        for entertainment_site in entertainment_sites:
+            if entertainment_site[0] in self.get_tab():
+                return "Entertainment", entertainment_site[0]
+
+        return "Default", None
+
+    def get_priority(self):
+        project_type, _ = self.get_type_and_cause()
+        if project_type == "Entertainment":
+            return 7
+        return self._priority
+
     def get_toggl_description(self):
-        return self.get_space()
+        _, cause = self.get_type_and_cause()
+        if cause:
+            return cause
+        return None
+
+    def get_toggl_project_id(self):
+        project_type, _ = self.get_type_and_cause()
+        if project_type == "Entertainment":
+            id = project_to_id["Entertainment"]
+            return id
+        return None
 
 
 # Process: Spotify.exe, Title: Spotify Premium, Foreground: False, Audio: False
@@ -269,10 +286,11 @@ class Firefox(Window):
         try:
             session_data = mozlz4_to_text(recovery_file)
         except PermissionError as e:
-            logger.error(f"Firefox Permission Error: {e}")
+            logger.error(f"Firefox Permission Error: {e}, retrying in 1 second")
+            time.sleep(1)
             return []
         except Exception as e:
-            logger.error(f"Firefox Error: {e}")
+            logger.error(f"Unexpected Firefox Error: {e}")
             return []
         session_data = json.loads(session_data)
         tab_names = []
@@ -293,48 +311,37 @@ class Firefox(Window):
         return tabs
 
     def get_type_and_cause(self):
-        # match recent tab urls to entertainment sites
         recent_tabs = self.get_recently_opened_tabs()
 
         # match current tab to entertainment sites
-        for entertainment_site in entertainment_list:
+        for entertainment_site in entertainment_sites:
             if entertainment_site[0] in self.get_current_tab():
                 return "Entertainment", entertainment_site[0]
 
+        # match recent tab urls to entertainment sites
         for recent_tab in recent_tabs:
-            for entertainment_site in entertainment_list:
+            for entertainment_site in entertainment_sites:
                 if entertainment_site[1] in recent_tab["url"]:
                     return "Entertainment", entertainment_site[0]
 
-        for habit_site in habits_list:
-            for tab in recent_tabs:
-                if habit_site[1] in tab["url"]:
-                    return "Habits", habit_site[0]
-            if habit_site[0] in self.get_current_tab():
-                return "Habits", habit_site[0]
         return "Default", None
 
     def get_priority(self):
-        ff_type, cause = self.get_type_and_cause()
-        if ff_type == "Entertainment":
+        project_type, _ = self.get_type_and_cause()
+        if project_type == "Entertainment":
             return 7
-        if ff_type == "Habits":
-            return 4
         return self._priority
 
     def get_toggl_description(self):
-        ff_type, cause = self.get_type_and_cause()
+        _, cause = self.get_type_and_cause()
         if cause:
             return cause
         return None
 
     def get_toggl_project_id(self):
-        ff_type, cause = self.get_type_and_cause()
-        if ff_type == "Entertainment":
+        project_type, _ = self.get_type_and_cause()
+        if project_type == "Entertainment":
             id = project_to_id["Entertainment"]
-            return id
-        if ff_type == "Habits":
-            id = project_to_id["Habits"]
             return id
         return None
 
@@ -402,7 +409,7 @@ class Chrome(Window):
         return tab_title
 
     def get_type_and_cause(self):
-        for entertainment_site in entertainment_list:
+        for entertainment_site in entertainment_sites:
             if entertainment_site[0] in self.get_current_tab():
                 return "Entertainment", entertainment_site[0]
         for tab in entertainment_tabs:
@@ -413,48 +420,23 @@ class Chrome(Window):
         return "Default", None
 
     def get_priority(self):
-        ff_type, cause = self.get_type_and_cause()
-        if ff_type == "Entertainment":
+        project_type, _ = self.get_type_and_cause()
+        if project_type == "Entertainment":
             return 7
         return self._priority
 
     def get_toggl_description(self):
-        ff_type, cause = self.get_type_and_cause()
+        _, cause = self.get_type_and_cause()
         if cause:
             return cause
         return None
 
     def get_toggl_project_id(self):
-        ff_type, cause = self.get_type_and_cause()
-        if ff_type == "Entertainment":
+        project_type, cause = self.get_type_and_cause()
+        if project_type == "Entertainment":
             id = project_to_id["Entertainment"]
             return id
         return None
-
-
-class NvimQT(Window):
-    def __init__(self, handle: int):
-        super().__init__(handle)
-        self._priority = 5
-
-    def __str__(self):
-        return f"Journal(Foreground: {self.is_active()})"
-
-    def __repr__(self):
-        return f"Journal({self.repr_content()})"
-
-    def llm_repr(self):
-        return f"{self._active_window_prefix()}Journal"
-
-    def get_title(self):
-        return "Journal"
-
-    def get_toggl_description(self):
-        return "Journal"
-
-    def get_toggl_project_id(self):
-        id = project_to_id["Habits"]
-        return id
 
 
 class NotionCalendar(Window):
@@ -482,52 +464,14 @@ class NotionCalendar(Window):
         return title
 
 
-class HuntShowdown(Window):
-    def __init__(self, handle: int):
+class Game(Window):
+    def __init__(self, handle: int, game_name: str):
         super().__init__(handle)
         self._priority = 10
+        self.game_name = game_name
 
     def get_toggl_description(self):
-        return "Hunt: Showdown"
-
-    def get_toggl_project_id(self):
-        id = project_to_id["Gaming"]
-        return id
-
-
-class EldenRing(Window):
-    def __init__(self, handle: int):
-        super().__init__(handle)
-        self._priority = 10
-
-    def get_toggl_description(self):
-        return "Elden Ring"
-
-    def get_toggl_project_id(self):
-        id = project_to_id["Gaming"]
-        return id
-
-
-class RocketLeague(Window):
-    def __init__(self, handle: int):
-        super().__init__(handle)
-        self._priority = 10
-
-    def get_toggl_description(self):
-        return "Rocket League"
-
-    def get_toggl_project_id(self):
-        id = project_to_id["Gaming"]
-        return id
-
-
-class StardewValley(Window):
-    def __init__(self, handle: int):
-        super().__init__(handle)
-        self._priority = 10
-
-    def get_toggl_description(self):
-        return "Stardew Valley"
+        return self.game_name
 
     def get_toggl_project_id(self):
         id = project_to_id["Gaming"]

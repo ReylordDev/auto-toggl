@@ -1,4 +1,5 @@
 from typing import Union
+from loguru import logger
 import win32gui
 import win32process
 
@@ -65,3 +66,18 @@ class Window:
 
     def get_priority(self):
         return self._priority
+
+    def set_priority(self, priority: float):
+        self._priority = priority
+
+    def scale_priority(self, z_index):
+        logger.debug(
+            f"Intial priority: {self.get_priority()}, z_index: {z_index}, process: {self.process}"
+        )
+        if z_index <= 3:
+            self.set_priority(self.get_priority() * 1.5)
+        elif 3 < z_index <= 5:
+            pass
+        else:
+            self.set_priority(self.get_priority() * 0.5)
+        logger.debug(f"Scaled priority: {self.get_priority()}, process: {self.process}")
