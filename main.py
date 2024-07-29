@@ -192,10 +192,11 @@ def main():
             max_prio = 0
             for z_index, window in enumerate(windows):
                 try:
-                    window.scale_priority(z_index)
-                    scaled_prio = window.get_priority()
+                    scaled_prio = window.scale_priority(z_index)
 
-                    logger.info(f"Window: {window.__repr__()}")
+                    logger.info(
+                        f"Window: {window.__repr__()}, Scaled priority: {scaled_prio}"
+                    )
                     if scaled_prio > max_prio:
                         max_prio = scaled_prio
                         max_prio_window = window

@@ -17,17 +17,17 @@ def get_windows():
 def get_windows_by_z_index() -> list[Window]:
     top_handle = win32gui.GetTopWindow(win32gui.GetDesktopWindow())
     iterator_handle = top_handle
-    visible_windows = []
+    windows = []
     while iterator_handle:
         window = create_window(iterator_handle)
-        visible_windows.append(window)
+        if window.is_watcher_relevant():
+            windows.append(window)
 
         try:
             iterator_handle = win32gui.GetWindow(iterator_handle, win32con.GW_HWNDNEXT)
         except Exception as e:
             logger.error(f"Error: {e}")
             break
-    windows = [window for window in visible_windows if window.is_watcher_relevant()]
     windows.sort(key=lambda window: window.is_active(), reverse=True)
     return windows
 

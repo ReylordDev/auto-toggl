@@ -5,6 +5,7 @@ from .windowsUtils import mozlz4_to_text
 import os
 from tldextract import extract
 from loguru import logger
+import win32gui
 
 with open("projects.json", "r") as f:
     project_objs: list = json.load(f)
@@ -96,6 +97,9 @@ class ArcBrowser(Window):
         assert os.path.exists(
             self.state_folder
         ), f"The Arc state folder path is not correct: {self.state_folder}"
+        logger.debug(f"Arc state folder: {self.state_folder}")
+
+        self._priority = 3
 
     def __str__(self):
         return f'ArcBrowser(Active-Space: "{self.get_space()}", Active-Tab: "{self.get_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
@@ -127,14 +131,17 @@ class ArcBrowser(Window):
         with open(sidebar_config, "r", encoding="utf-8") as f:
             data = f.read()
         data = json.loads(data)
-        for item in data["sidebar"]["containers"][1]["items"]:
-            if isinstance(item, str):
+        for container in data["sidebar"]["containers"]:
+            if "items" not in container.keys():
                 continue
-            if item["id"] == tab_id:
-                title = item["title"]
-                if not title:
-                    title = item["data"]["tab"]["savedTitle"]
-                return title
+            for item in container["items"]:
+                if isinstance(item, str):
+                    continue
+                if item["id"] == tab_id:
+                    title = item["title"]
+                    if not title:
+                        title = item["data"]["tab"]["savedTitle"]
+                    return title
         return "No Tab"
 
     def get_space(self):
@@ -370,6 +377,30 @@ class Notion(Window):
         return title
 
 
+def parse_website_title(title: str) -> str:
+    if " - " not in title:
+        return "No Tab"
+    title_parts = title.split(" - ")
+    tab_title = " - ".join(title_parts[0:-1])
+    if " - " in tab_title:
+        tab_title_parts = tab_title.split(" - ")
+        website_name = tab_title_parts[-1]
+        return website_name
+    if " | " in tab_title:
+        tab_title_parts = tab_title.split(" | ")
+        website_name = tab_title_parts[0]
+        return website_name
+    if " / " in tab_title:
+        tab_title_parts = tab_title.split(" / ")
+        website_name = tab_title_parts[-1]
+        return website_name
+    if " : " in tab_title:
+        tab_title_parts = tab_title.split(" : ")
+        website_name = tab_title_parts[-1]
+        return website_name
+    return tab_title
+
+
 class Chrome(Window):
     def __init__(self, handle: int):
         super().__init__(handle)
@@ -386,27 +417,7 @@ class Chrome(Window):
 
     def get_current_tab(self):
         title = self.get_title()
-        if " - " not in title:
-            return "No Tab"
-        title_parts = title.split(" - ")
-        tab_title = " - ".join(title_parts[0:-1])
-        if " - " in tab_title:
-            tab_title_parts = tab_title.split(" - ")
-            website_name = tab_title_parts[-1]
-            return website_name
-        if " | " in tab_title:
-            tab_title_parts = tab_title.split(" | ")
-            website_name = tab_title_parts[0]
-            return website_name
-        if " / " in tab_title:
-            tab_title_parts = tab_title.split(" / ")
-            website_name = tab_title_parts[-1]
-            return website_name
-        if " : " in tab_title:
-            tab_title_parts = tab_title.split(" : ")
-            website_name = tab_title_parts[-1]
-            return website_name
-        return tab_title
+        return parse_website_title(title)
 
     def get_type_and_cause(self):
         for entertainment_site in entertainment_sites:

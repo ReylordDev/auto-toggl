@@ -70,14 +70,16 @@ class Window:
     def set_priority(self, priority: float):
         self._priority = priority
 
-    def scale_priority(self, z_index):
+    def scale_priority(self, z_index) -> float:
+        prio = self.get_priority()
         logger.debug(
-            f"Intial priority: {self.get_priority()}, z_index: {z_index}, process: {self.process}"
+            f"Intial priority: {prio}, z_index: {z_index}, process: {self.process}"
         )
         if z_index <= 3:
-            self.set_priority(self.get_priority() * 1.5)
+            scaled_priority = prio * 1.5
         elif 3 < z_index <= 5:
-            pass
+            scaled_priority = prio
         else:
-            self.set_priority(self.get_priority() * 0.5)
-        logger.debug(f"Scaled priority: {self.get_priority()}, process: {self.process}")
+            scaled_priority = prio * 0.5
+        logger.debug(f"Scaled priority: {scaled_priority}, process: {self.process}")
+        return scaled_priority

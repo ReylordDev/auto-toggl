@@ -39,6 +39,7 @@ def create_window(handle: int):
         return Game(handle, "Rocket League")
     elif process == "Stardew Valley.exe":
         return Game(handle, "Stardew Valley")
+    elif process == "Disco Elysium.exe":
+        return Game(handle, "Disco Elysium")
     else:
-        logger.warning(f"Tracking Unknown Process: {process}")
         return Window(handle)
