@@ -6,6 +6,7 @@ import os
 from tldextract import extract
 from loguru import logger
 import win32gui
+from abc import ABC, abstractmethod
 
 with open("projects.json", "r") as f:
     project_objs: list = json.load(f)
@@ -21,6 +22,8 @@ entertainment_sites = [
 entertainment_tabs = [
     ("Everything GTA RP related!", "Reddit"),
     ("X", "Twitter"),
+    ("YouTube", "https://www.youtube.com"),
+    ("Twitch", "https://www.twitch.tv"),
 ]
 
 
@@ -168,6 +171,11 @@ class ArcBrowser(Window):
             if entertainment_site[0] in self.get_tab():
                 return "Entertainment", entertainment_site[0]
 
+        website = parse_website_title(self.get_tab())
+        for tab in entertainment_tabs:
+            if tab[0] in website:
+                return "Entertainment", entertainment_site[1]
+
         return "Default", None
 
     def get_priority(self):
@@ -234,30 +242,26 @@ class Spotify(Window):
         return "No Artist"
 
 
-class Firefox(Window):
-    # TODO make this automatic
-    PROFILE_NAME = "1doawgbs.default"
-    DEV_PROFILE_NAME = "wpicxufb.dev-edition-default"
-    profile_path = os.path.join(
-        os.environ["APPDATA"], "Mozilla", "Firefox", "Profiles", PROFILE_NAME
-    )
-    dev_profile_path = os.path.join(
-        os.environ["APPDATA"], "Mozilla", "Firefox", "Profiles", DEV_PROFILE_NAME
-    )
-
-    def __init__(self, handle: int):
+class AbstractMozillaBrowser(Window, ABC):
+    def __init__(self, handle: int, profile: str, name: str):
         super().__init__(handle)
         self.get_recently_opened_tabs()
         self._priority = 3
+        self.profile = profile
+        self.name = name
+
+    @abstractmethod
+    def get_profile_folder(self) -> str:
+        pass
 
     def __str__(self):
-        return f'Firefox(Active-Tab: "{self.get_current_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
+        return f'{self.name}(Active-Tab: "{self.get_current_tab()}", Foreground: {self.is_active()}, Audio: {self.is_playing_audio()})'
 
     def __repr__(self):
-        return f"Firefox({self.repr_content()}, tab='{self.get_current_tab()}', recent_tabs='{self.get_recently_opened_tabs()}')"
+        return f"{self.name}({self.repr_content()}, tab='{self.get_current_tab()}', recent_tabs='{self.get_recently_opened_tabs()}')"
 
     def llm_repr(self):
-        return f'{self._active_window_prefix()}Firefox:{{ActiveTab:"{self.get_current_tab()}", Audio:{self.is_playing_audio()}, RecentTabs:{self.get_recently_opened_tabs()}}}'
+        return f'{self._active_window_prefix()}{self.name}:{{ActiveTab:"{self.get_current_tab()}", Audio:{self.is_playing_audio()}, RecentTabs:{self.get_recently_opened_tabs()}}}'
 
     def get_current_tab(self):
         title = self.get_title()
@@ -281,23 +285,23 @@ class Firefox(Window):
 
     def get_recently_opened_tabs(self) -> list[dict[str, str]]:
         recovery_file = os.path.join(
-            self.profile_path, "sessionstore-backups", "recovery.jsonlz4"
+            self.get_profile_folder(), "sessionstore-backups", "recovery.jsonlz4"
         )
         if not os.path.exists(recovery_file):
             recovery_file = os.path.join(
-                self.dev_profile_path, "sessionstore-backups", "recovery.jsonlz4"
+                self.get_profile_folder(), "sessionstore-backups", "recovery.jsonlz4"
             )
             if not os.path.exists(recovery_file):
-                logger.warning(f"Firefox recovery file not found: {recovery_file}")
+                logger.warning(f"{self.name} recovery file not found: {recovery_file}")
                 return []
         try:
             session_data = mozlz4_to_text(recovery_file)
         except PermissionError as e:
-            logger.error(f"Firefox Permission Error: {e}, retrying in 1 second")
+            logger.error(f"{self.name} Permission Error: {e}, retrying in 1 second")
             time.sleep(1)
             return []
         except Exception as e:
-            logger.error(f"Unexpected Firefox Error: {e}")
+            logger.error(f"Unexpected {self.name} Error: {e}")
             return []
         session_data = json.loads(session_data)
         tab_names = []
@@ -351,6 +355,36 @@ class Firefox(Window):
             id = project_to_id["Entertainment"]
             return id
         return None
+
+
+class Firefox(AbstractMozillaBrowser):
+    def __init__(self, handle: int):
+        PROFILE_NAME = "1doawgbs.default"
+        self.profile = PROFILE_NAME
+
+        super().__init__(handle, PROFILE_NAME, "Firefox")
+
+    def get_profile_folder(self) -> str:
+        APPDATA = os.environ.get("APPDATA")
+        assert APPDATA is not None, "APPDATA environment variable not found"
+        profile_folder = os.path.join(
+            APPDATA, "Mozilla", "Firefox", "Profiles", self.profile
+        )
+        return profile_folder
+
+
+class ZenBrowser(AbstractMozillaBrowser):
+    def __init__(self, handle: int):
+        PROFILE_NAME = "n8q4xjq6.Default (alpha)"
+        self.profile = PROFILE_NAME
+
+        super().__init__(handle, PROFILE_NAME, "Zen Browser")
+
+    def get_profile_folder(self) -> str:
+        APPDATA = os.environ.get("APPDATA")
+        assert APPDATA is not None, "APPDATA environment variable not found"
+        profile_folder = os.path.join(APPDATA, "zen", "Profiles", self.profile)
+        return profile_folder
 
 
 class Notion(Window):

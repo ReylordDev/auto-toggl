@@ -3,6 +3,7 @@ from .specialWindows import (
     ArcBrowser,
     Chrome,
     Firefox,
+    ZenBrowser,
     Game,
     Notion,
     Spotify,
@@ -25,6 +26,8 @@ def create_window(handle: int):
         return Spotify(handle)
     elif process == "firefox.exe":
         return Firefox(handle)
+    elif process == "zen.exe":
+        return ZenBrowser(handle)
     elif process == "Notion.exe":
         return Notion(handle)
     elif process == "chrome.exe":
