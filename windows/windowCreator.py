@@ -44,5 +44,7 @@ def create_window(handle: int):
         return Game(handle, "Stardew Valley")
     elif process == "Disco Elysium.exe":
         return Game(handle, "Disco Elysium")
+    elif process == "League of Legends.exe":
+        return Game(handle, "League of Legends")
     else:
         return Window(handle)

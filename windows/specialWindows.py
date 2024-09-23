@@ -1,3 +1,4 @@
+from cmath import log
 import json
 import time
 from .window import Window
@@ -243,15 +244,13 @@ class Spotify(Window):
 
 
 class AbstractMozillaBrowser(Window, ABC):
-    def __init__(self, handle: int, profile: str, name: str):
+    def __init__(self, handle: int, name: str):
         super().__init__(handle)
-        self.get_recently_opened_tabs()
-        self._priority = 3
-        self.profile = profile
         self.name = name
+        self._priority = 3
 
     @abstractmethod
-    def get_profile_folder(self) -> str:
+    def get_profiles_folder(self) -> str:
         pass
 
     def __str__(self):
@@ -284,16 +283,18 @@ class AbstractMozillaBrowser(Window, ABC):
         return tab_title
 
     def get_recently_opened_tabs(self) -> list[dict[str, str]]:
+        profiles_folder = self.get_profiles_folder()
+        profile_names = os.listdir(profiles_folder)
+        profile_paths = [os.path.join(profiles_folder, name) for name in profile_names]
+        sorted_profile_paths = sorted(profile_paths, key=os.path.getmtime, reverse=True)
+        logger.debug(f"{self.name} sorted profiles: {sorted_profile_paths}")
+        active_profile_path = sorted_profile_paths[0]
         recovery_file = os.path.join(
-            self.get_profile_folder(), "sessionstore-backups", "recovery.jsonlz4"
+            active_profile_path, "sessionstore-backups", "recovery.jsonlz4"
         )
         if not os.path.exists(recovery_file):
-            recovery_file = os.path.join(
-                self.get_profile_folder(), "sessionstore-backups", "recovery.jsonlz4"
-            )
-            if not os.path.exists(recovery_file):
-                logger.warning(f"{self.name} recovery file not found: {recovery_file}")
-                return []
+            logger.warning(f"{self.name} recovery file not found: {recovery_file}")
+            return []
         try:
             session_data = mozlz4_to_text(recovery_file)
         except PermissionError as e:
@@ -319,7 +320,7 @@ class AbstractMozillaBrowser(Window, ABC):
                     tab_names.append(title)
                     tabs.append({"title": title, "url": url})
         tabs.reverse()
-        return tabs
+        return tabs[:5]
 
     def get_type_and_cause(self):
         recent_tabs = self.get_recently_opened_tabs()
@@ -359,31 +360,23 @@ class AbstractMozillaBrowser(Window, ABC):
 
 class Firefox(AbstractMozillaBrowser):
     def __init__(self, handle: int):
-        PROFILE_NAME = "1doawgbs.default"
-        self.profile = PROFILE_NAME
+        super().__init__(handle=handle, name="Firefox")
 
-        super().__init__(handle, PROFILE_NAME, "Firefox")
-
-    def get_profile_folder(self) -> str:
+    def get_profiles_folder(self) -> str:
         APPDATA = os.environ.get("APPDATA")
         assert APPDATA is not None, "APPDATA environment variable not found"
-        profile_folder = os.path.join(
-            APPDATA, "Mozilla", "Firefox", "Profiles", self.profile
-        )
+        profile_folder = os.path.join(APPDATA, "Mozilla", "Firefox", "Profiles")
         return profile_folder
 
 
 class ZenBrowser(AbstractMozillaBrowser):
     def __init__(self, handle: int):
-        PROFILE_NAME = "n8q4xjq6.Default (alpha)"
-        self.profile = PROFILE_NAME
+        super().__init__(handle=handle, name="Zen Browser")
 
-        super().__init__(handle, PROFILE_NAME, "Zen Browser")
-
-    def get_profile_folder(self) -> str:
+    def get_profiles_folder(self) -> str:
         APPDATA = os.environ.get("APPDATA")
         assert APPDATA is not None, "APPDATA environment variable not found"
-        profile_folder = os.path.join(APPDATA, "zen", "Profiles", self.profile)
+        profile_folder = os.path.join(APPDATA, "zen", "Profiles")
         return profile_folder
 
 
