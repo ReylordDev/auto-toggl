@@ -203,6 +203,10 @@ def main():
                 except Exception as e:
                     logger.error(f"Error: {e}")
                     continue
+            if not max_prio_window:
+                logger.info("No window found.")
+                time.sleep(1)
+                continue
             logger.info(f"Max priority window: {max_prio_window.__repr__()}")
             logger.info(f"Max priority: {max_prio}")
             new_project_id = max_prio_window.get_toggl_project_id()

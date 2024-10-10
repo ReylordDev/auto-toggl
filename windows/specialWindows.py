@@ -264,9 +264,9 @@ class AbstractMozillaBrowser(Window, ABC):
 
     def get_current_tab(self):
         title = self.get_title()
-        if " – " not in title:
+        if " – " not in title and "—" not in title:
             return "No Tab"
-        title_parts = title.split(" – ")
+        title_parts = title.split(" – ") if " – " in title else title.split("—")
         tab_title = "".join(title_parts[0:-1])
         if " - " in tab_title:
             tab_title_parts = tab_title.split(" - ")
