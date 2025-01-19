@@ -190,6 +190,7 @@ def main():
             logger.info(f"Current time entry: {current_time_entry.__repr__()}")
             windows = get_windows_by_z_index()
             max_prio = 0
+            max_prio_window = None
             for z_index, window in enumerate(windows):
                 try:
                     scaled_prio = window.scale_priority(z_index)

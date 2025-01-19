@@ -46,5 +46,11 @@ def create_window(handle: int):
         return Game(handle, "Disco Elysium")
     elif process == "League of Legends.exe":
         return Game(handle, "League of Legends")
+    elif process == "Back4Blood.exe":
+        return Game(handle, "Back 4 Blood")
+    elif process == "Terraria.exe":
+        return Game(handle, "Terraria")
+    elif process == "BF2042.exe":
+        return Game(handle, "Battlefield 2042")
     else:
         return Window(handle)

@@ -42,8 +42,12 @@ class Window:
         return val
 
     def get_placement(self):
-        placement = win32gui.GetWindowPlacement(self.handle)
-        return placement
+        try:
+            placement = win32gui.GetWindowPlacement(self.handle)
+            return placement
+        except Exception as e:
+            logger.error(f"get_placement Error: {e}")
+            return None
 
     def is_watcher_relevant(self):
         return (
