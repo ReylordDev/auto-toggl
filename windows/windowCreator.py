@@ -18,7 +18,7 @@ import win32process
 def create_window(handle: int):
     _, pid = win32process.GetWindowThreadProcessId(handle)
     process = get_process_name(pid)
-    if process == "Code.exe":
+    if process == "Code.exe" or process == "Cursor.exe":
         return VSCode(handle)
     elif process == "Arc.exe":
         return ArcBrowser(handle)
