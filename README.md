@@ -1,6 +1,6 @@
 # Auto Toggl
 
-This is a python script starts a [Toggl](https://toggl.com/) timer depending on the current user activity. 
+This is a python script that starts a [Toggl](https://toggl.com/) timer depending on the current user activity. 
 
 Most importantly, it automatically detects "slacking", such as watching YouTube videos, gaming or scrolling through social media, and tracks the time spent on these activities.
 
